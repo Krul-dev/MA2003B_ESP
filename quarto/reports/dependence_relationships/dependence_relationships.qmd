@@ -75,13 +75,12 @@ Blanca Rosa Ruiz Hernández}
 # {{< include _11_logistic_model_fit_adequacy.qmd >}}
 ```
 
-\part{Análisis de Regresión}
+\part{Análisis de regresión lineal}
 
 \pagestyle{multivariate_notes}
 \pagenumbering{arabic}
 
 {{< include _1_linear_regression.qmd >}}
-
 {{< include _3_likelihood_significance.qmd >}}
 
 \part{Análisis Discriminante Lineal}

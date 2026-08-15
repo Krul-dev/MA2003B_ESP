@@ -2,21 +2,13 @@
 
 Para una muestra dada, no siempre se conoce la distribución poblacional subyacente. En particular, pueden desconocerse la media y la desviación estándar poblacional. Aun así, existen varios métodos comunes para escalar nuestros datos. Algunos de los más utilizados son:
 
-1.  **Estandarización.** Usa la media y la desviación estándar muestrales. En otras palabras, la muestra estandarizada está dada por $$
-    T = \frac{X - \bar{X}}{S},
-    $$ donde $\bar{X}$ es la media muestral y $S$ es la desviación estándar muestral.
+1.  **Estandarización.** Usa la media y la desviación estándar muestrales. En otras palabras, la muestra estandarizada está dada por $$T = \frac{X - \bar{X}}{S},$$ donde $\bar{X}$ es la media muestral y $S$ es la desviación estándar muestral.
 
-2.  **Escalamiento Min–Max.** En este caso la muestra escalada está dada por $$
-    T = \frac{X - \min(X)}{\max(X) - \min(X)},
-    $$ donde $\min(X)$ y $\max(X)$ son el mínimo y máximo de la muestra. Este método de escalamiento es muy sensible a valores atípicos, ya que utiliza los valores extremos de la muestra.
+2.  **Escalamiento Min–Max.** En este caso la muestra escalada está dada por $$T = \frac{X - \min(X)}{\max(X) - \min(X)},$$ donde $\min(X)$ y $\max(X)$ son el mínimo y máximo de la muestra. Este método de escalamiento es muy sensible a valores atípicos, ya que utiliza los valores extremos de la muestra.
 
-3.  **Escalamiento robusto.** Usa la mediana y el rango intercuartil (IQR). La muestra escalada es $$
-    T = \frac{X - \text{mediana}(X)}{\text{IQR}(X)},
-    $$ Este método es más robusto frente a valores atípicos en comparación con el escalamiento Min–Max.
+3.  **Escalamiento robusto.** Usa la mediana y el rango intercuartil (IQR). La muestra escalada es $$T = \frac{X - \text{mediana}(X)}{\text{IQR}(X)},$$ Este método es más robusto frente a valores atípicos en comparación con el escalamiento Min–Max.
 
-4.  **Normalización.** Divide cada dato por la norma del vector. La muestra normalizada es $$
-    T = \frac{X}{\|X\|},
-    $$ donde $\|X\|$ es la norma. Se usa con menor frecuencia que los anteriores.
+4.  **Normalización.** Divide cada dato por la norma del vector. La muestra normalizada es $$T = \frac{X}{\|X\|},$$ donde $\|X\|$ es la norma. Se usa con menor frecuencia que los anteriores.
 
 Como ejemplo, consideraremos los distintos métodos de escalado aplicados a una muestra proveniente de una distribución Gamma.
 

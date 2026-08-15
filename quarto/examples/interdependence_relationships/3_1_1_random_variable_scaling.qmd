@@ -2,30 +2,19 @@
 
 Un problema común en el análisis multivariado es que las variables involucradas pueden tener diferentes unidades de medida o rangos de valores. Esto provoca que algunas variables dominen el análisis simplemente por su escala, lo que puede llevar a interpretaciones erróneas.
 
-**Definición.** Una *transformación afín* de una variable aleatoria $X$ es una transformación de la forma $$
-Y = aX + b
-$$ donde $a$ y $b$ son constantes.
+**Definición.** Una *transformación afín* de una variable aleatoria $X$ es una transformación de la forma $$Y = aX + b$$ donde $a$ y $b$ son constantes.
 
 **Observación.** En estadística, a menudo se habla de *escalamientos* (aunque incluyan traslaciones) para referirse a transformaciones afines.
 
 Suponga que $X$ tiene media $\mu$ y desviación estándar $\sigma$. Entonces la variable $$ 
-Y = aX + b 
-$$tendrá media $a\mu + b$ y desviación estándar $|a|\sigma$. En particular, si elegimos $a = 1/\sigma$ y $b = -\mu/\sigma$, entonces la variable $$
-Z = \frac{X - \mu}{\sigma}
-$$tendrá media $0$ y desviación estándar $1$. Esta transformación se conoce como la *estandarización* de la variable $X$ y, en este caso, decimos que $Z$ es la versión *estandarizada* de $X$ (también conocida como su *puntaje* $z$).
+Y = aX + b $$ tendrá media $a\mu + b$ y desviación estándar $|a|\sigma$. En particular, si elegimos $a = 1/\sigma$ y $b = -\mu/\sigma$, entonces la variable $$Z = \frac{X - \mu}{\sigma}$$ tendrá media $0$ y desviación estándar $1$. Esta transformación se conoce como la *estandarización* de la variable $X$ y, en este caso, decimos que $Z$ es la versión *estandarizada* de $X$ (también conocida como su *puntaje* $z$).
 
-**Observación.** Si $X$ no es normal, entonces $Z$ *no* será normal estándar. La estandarización no transforma una distribución no normal en una distribución normal. Notemos además que, por definición, $$
-\gamma_{1}(Z) =\mathbb{E}[Z^{3}] = \frac{\mathbb{E}[(X - \mu)^3]}{\sigma^3} = \gamma_{1}(X)
-$$ y $$
-\gamma_{2}(Z) =\mathbb{E}[Z^{4}] - 3 = \frac{\mathbb{E}[(X - \mu)^4]}{\sigma^4} -3 = \gamma_{2}(X).
-$$En otras palabras, la asimetría y la curtosis en exceso no cambian al estandarizar una variable aleatoria.
+**Observación.** Si $X$ no es normal, entonces $Z$ *no* será normal estándar. La estandarización no transforma una distribución no normal en una distribución normal. Notemos además que, por definición, $$\gamma_{1}(Z) =\mathbb{E}[Z^{3}] = \frac{\mathbb{E}[(X - \mu)^3]}{\sigma^3} = \gamma_{1}(X)$$ y $$\gamma_{2}(Z) =\mathbb{E}[Z^{4}] - 3 = \frac{\mathbb{E}[(X - \mu)^4]}{\sigma^4} -3 = \gamma_{2}(X).$$ En otras palabras, la asimetría y la curtosis en exceso no cambian al estandarizar una variable aleatoria.
 
-Como ejemplo, consideraremos la distribución Gamma con parámetros $\alpha = 2$ y $\beta = 1$. En este caso la media y la desviación estándar están dadas por: $$
-\begin{aligned}
+Como ejemplo, consideraremos la distribución Gamma con parámetros $\alpha = 2$ y $\beta = 1$. En este caso la media y la desviación estándar están dadas por: $$\begin{aligned}
 \mu = & \frac{\alpha}{\beta} = 2 \\
 \sigma = & \frac{\sqrt{\alpha}}{\beta} = \sqrt{2} 
-\end{aligned} 
-$$Usando esta información, podemos generar la gráfica de la versión estandarizada de la distribución Gamma y compararla con la original.
+\end{aligned} $$ Usando esta información, podemos generar la gráfica de la versión estandarizada de la distribución Gamma y compararla con la original.
 
 ```{r}
 #| fig-cap: "Comparación de la función de densidad (PDF) de la distribución Gamma original y su versión estandarizada. Notemos que aunque la media y la desviación estándar cambian, la forma de la distribución permanece igual. En particular, se puede observar que la asimetría de la distribución no cambia."

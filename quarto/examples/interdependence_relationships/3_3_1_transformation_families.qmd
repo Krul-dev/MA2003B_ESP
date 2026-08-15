@@ -2,21 +2,17 @@
 
 Las transformaciones nos permiten modificar la manera en la que representamos la información contenida en una muestra. A diferencia del escalamiento, las transformaciones si pueden alterar la forma de la distribución original y sus propiedades estadísticas. Una aplicación común de estas transformaciones es mejorar la normalidad de nuestros datos, lo cual es útil para cumplir con los supuestos de ciertos análisis estadísticos. Usualmente, las transformaciones que aplicamos a una muestra pertenecen a alguna familia de transformaciones que dependen de ciertos parámetros. Dos de las familias más comunes son:
 
-1.  **Transformaciones de Box–Cox.** Esta es una familia de transformaciones que se utiliza comúnmente para corregir asimetrías, pero solo es aplicable a datos positivos. Está dada por: $$
-    \tilde{X} = \begin{cases}
+1.  **Transformaciones de Box–Cox.** Esta es una familia de transformaciones que se utiliza comúnmente para corregir asimetrías, pero solo es aplicable a datos positivos. Está dada por: $$\tilde{X} = \begin{cases}
     \frac{X^\lambda - 1}{\lambda} & \text{si } \lambda \neq 0 \\
     \log(X) & \text{si } \lambda = 0 
-    \end{cases}
-    $$ donde $\lambda$ es un parámetro.
+    \end{cases}$$ donde $\lambda$ es un parámetro.
 
-2.  **Transformaciones de Yeo–Johnson.** Similar a las transformaciones de Box–Cox, pero también son aplicables a datos negativos. Están dadas por: $$
-    \tilde{X} = \begin{cases}
+2.  **Transformaciones de Yeo–Johnson.** Similar a las transformaciones de Box–Cox, pero también son aplicables a datos negativos. Están dadas por: $$\tilde{X} = \begin{cases}
     \frac{((X + 1)^\lambda - 1)}{\lambda} & \text{si } X \geq 0, \lambda \neq 0 \\
     \log(X + 1) & \text{si } X \geq 0, \lambda = 0 \\
     \frac{-((-X + 1)^{2 - \lambda} - 1)}{2 - \lambda} & \text{si } X < 0, \lambda \neq 2 \\
     \log(-X + 1) & \text{si } X < 0, \lambda = 2 
-    \end{cases}
-    $$ donde $\lambda$ nuevamente es nuestro parámetro.
+    \end{cases}$$ donde $\lambda$ nuevamente es nuestro parámetro.
 
 Como ilustración, aplicaremos una transformación de Box–Cox a la muestra Gamma que habíamos considerado anteriormente, utilizando los valores del parámetro $\lambda = 0$, $0.25$, $0.5$, $0.75$ y $1$:
 
