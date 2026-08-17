@@ -59,17 +59,17 @@ Blanca Rosa Ruiz Hernández}
 #| echo: false
 # \part{Regresión Lineal}
 
-# {{< include _1_least_squares_fitting.qmd >}}
-# {{< include _2_regression_intervals.qmd >}}
+# {{< include _1_univariate_inference.qmd >}}
+# {{< include _2_simple_linear_regression.qmd >}}
 # {{< include _3_likelihood_significance.qmd >}}
 #
-# \part{Análisis Discriminante Lineal}
+# \part{Análisis discriminante lineal}
 #
 # {{< include _7_gaussian_discriminant_model.qmd >}}
 # {{< include _8_gaussian_discriminant_model_fit_adequacy.qmd >}}
 # {{< include _9_stepwise_lda.qmd >}}
 #
-# \part{Regresión Logística}
+# \part{Regresión logística}
 #
 # {{< include _10_logistic_model.qmd >}}
 # {{< include _11_logistic_model_fit_adequacy.qmd >}}
@@ -80,16 +80,17 @@ Blanca Rosa Ruiz Hernández}
 \pagestyle{multivariate_notes}
 \pagenumbering{arabic}
 
-{{< include _1_linear_regression.qmd >}}
-{{< include _3_likelihood_significance.qmd >}}
+{{< include _1_univariate_inference.qmd >}}
+{{< include _2_simple_linear_regression.qmd >}}
+{{< include _3_multiple_linear_regression.qmd >}}
 
-\part{Análisis Discriminante Lineal}
+\part{Análisis discriminante lineal}
 
 {{< include _7_gaussian_discriminant_model.qmd >}}
 {{< include _8_gaussian_discriminant_model_fit_adequacy.qmd >}}
 {{< include _9_stepwise_lda.qmd >}}
 
-\part{Regresión Logística}
+\part{Regresión logística}
 
 {{< include _10_logistic_model.qmd >}}
 {{< include _11_logistic_model_fit_adequacy.qmd >}}

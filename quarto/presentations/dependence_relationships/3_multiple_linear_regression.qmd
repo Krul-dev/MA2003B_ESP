@@ -1,0 +1,46 @@
+---
+author: rgomez@tec.mx
+format:
+   beamer:
+     pdf-engine: pdflatex
+     fontsize: 11pt
+     classoption: "aspectratio=169"
+     slide-level: 3  # Ensures correct slide structure
+     include-in-header: _header.tex
+
+execute:
+  echo: true  # Set to false if you don't want code displayed
+
+highlight-style: tango 
+
+---
+
+### {.plain}
+
+\addtocounter{framenumber}{-1}
+
+
+\begin{center}
+\Huge\textcolor{structure}{\inserttitle}
+
+\vfill
+
+\Large\insertsubtitle
+
+\vfill
+
+\vspace{1em}
+
+\vfill
+
+
+\large \raisebox{.25cm}{Raul Gomez} \qquad \insertlogo
+
+
+\vfill
+
+\end{center}
+
+{{< include _3_content.qmd >}}
+
+

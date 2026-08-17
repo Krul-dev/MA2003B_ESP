@@ -1,308 +1,15 @@
-# Regresión lineal
+# Regresión lineal simple
 
-## Intervalos de confianza
-
-Supongamos que tenemos una variable aleatoria $Y_{0}$ que sigue una distribución normal con media $\mu$ y varianza $\sigma^2$, es decir,
-$$
-Y_{0} \sim \mathcal{N}(\mu, \sigma^2)
-$$
-Supongamos además que queremos recolectar una muestra de tamaño $n$ de esta variable aleatoria, que utilizaremos para estimar el valor de la media $\mu$. Utilizaremos las variables aleatorias $Y_1, Y_2, \ldots, Y_n$ para denotar los posibles valores de esta muestra. Notemos que estas variables aleatorias son independientes e idénticamente distribuidas (i.i.d.) y que cada una de ellas sigue la misma distribución normal que $Y_{0}$, es decir,
-$$
-Y_i \sim \mathcal{N}(\mu, \sigma^2) \qquad i = 1, 2, \ldots, n
-$$
-Para estimar el valor de $\mu$, utilizaremos la media muestral, definida como
-$$
-\bar{Y} = \frac{1}{n} \sum_{i=1}^{n} Y_i
-$$
-Notemos que la media muestral $\bar{Y}$ es una variable aleatoria que también sigue una distribución normal, con media $\mu$ y varianza $\sigma^2 / n$, es decir,
-$$
-\bar{Y} \sim \mathcal{N}(\mu, \sigma^2 / n)
-$$
-En particular, $E[\bar{Y}] = \mu$, en otras palabras, la media muestral es un estimador insesgado de la media poblacional $\mu$. Además, el que la varianza de la media muestral sea $\sigma^2 / n$ significa que a medida que aumentamos el tamaño de la muestra $n$, la varianza de la media muestral disminuye y, por lo tanto, la media muestral se vuelve más precisa como estimador de $\mu$. Aún más, si definimos la variable aleatoria 
-$$
-S^2 = \frac{1}{n-1} \sum_{i=1}^{n} (Y_i - \bar{Y})^2
-$$
-entonces $S^2$ es un estimador insesgado de la varianza poblacional $\sigma^2$, es decir, $E[S^2] = \sigma^2$. Notemos que la variable aleatoria $S^2$ sigue una distribución chi-cuadrada con $n-1$ grados de libertad, es decir,
-$$
-\frac{(n-1) S^2}{\sigma^2} \sim \chi^2_{n-1}
-$$
-Además, las variables aleatorias $\bar{Y}$ y $S^2$ son independientes, por lo que la variable aleatoria
-$$
-T = \frac{\bar{Y} - \mu}{S / \sqrt{n}} \sim t_{n-1}
-$$
-donde $t_{n-1}$ denota la distribución $t$ de Student con $n-1$ grados de libertad. Notemos que la variable aleatoria $T$ es una función de la media muestral $\bar{Y}$, la varianza muestral $S^2$ y el tamaño de la muestra $n$, y que su distribución no depende del valor de $\mu$ ni de $\sigma^2$. Sea ahora $t_{\alpha/2, n-1}$ el cuantil de orden $1 - \alpha/2$ de la distribución $t$ de Student con $n-1$ grados de libertad, en otras palabras,
-$$
-P(-t_{\alpha/2, n-1} < T < t_{\alpha/2, n-1}) = 1 - \alpha
-$$
-Reescribiendo esta desigualdad en términos de $\mu$, obtenemos
-$$
-P\left(\bar{Y} - t_{\alpha/2, n-1}
-\frac{S}{\sqrt{n}} < \mu < \bar{Y} + t_{\alpha/2, n-1} \frac{S}{\sqrt{n}}\right) = 1 - \alpha
-$$
-Supongamos ahora que realizamos el muestreo correspondiente y que obtenemos $y_1, y_2, \ldots, y_n$ como los valores de la muestra. Podemos entonces calcular la media muestral $\bar{y}$ y la varianza muestral $s^2$, y podemos utilizar estos valores para construir el intervalo de confianza 
-$$
-\left(\bar{y} - t_{\alpha/2, n-1} \frac{s}{\sqrt{n}}, \bar{y} + t_{\alpha/2, n-1} \frac{s}{\sqrt{n}}\right)
-$$
-para $\mu$ con un nivel de confianza del $100(1 - \alpha)\%$. Notemos que esto significa que si repitiéramos este procedimiento muchas veces, entonces esperaríamos que alrededor del $100(1 - \alpha)\%$ de los intervalos de confianza obtenidos de esta manera contendrían el valor verdadero de $\mu$.
-
-De manera más explícita, supongamos que $Y_{0}$ tiene una distribución normal estándar, es decir, $\mu = 0$ y $\sigma^2 = 1$. Supongamos además que queremos considerar muestras de tamaño $n = 10$. Notemos que en este caso tenemos que
-$$
-\bar{Y} = \frac{1}{10} \sum_{i=1}^{10} Y_i \sim \mathcal{N}(0, 1/10)
-$$
-Para comparar las variables aleatorias $Y_{0}$ y $\bar{Y}$, tomaremos una muestra de tamaño $50$ para $Y_{0}$ y tomaremos una colección de $50$ muestras de tamaño $10$ para $\bar{Y}$. 
+Empezamos por cargar las librerías necesarias para este cuaderno:
 ```{r}
-#| fig-cap: "Comparación entre la variable aleatoria original y la media muestral."
-#| fig-width: 12
-#| fig-height: 6
 #| message: false
 
-
-# Cargamos las librerías necesarias y  fijamos la semilla para reproducibilidad
 library(tidyverse)
 library(krulRutils)
 library(latex2exp)
 library(patchwork)
 set.seed(123)
-
-# Fijamos los parámetros de la distribución normal y el tamaño de la muestra
-mu <- 0
-sigma <- 1
-n <- 10
-
-# Creamos los datos para las densidades y las muestras
-x_data <- seq(-2.5, 2.5, length.out = 1000)
-y0_density_data <- dnorm(x_data, mean = mu, sd = sigma)
-ybar_density_data <- dnorm(x_data, mean = mu, sd = sigma / sqrt(n))
-
-# Generamos las muestras de tamaño 50 para Y0 y 50 muestras de tamaño n para Ybar
-y0_data <- rnorm(50, mean = mu, sd = sigma)
-
-y_samples_tbl <- tibble(
-  y = rnorm(50 * n, mean = mu, sd = sigma),
-  sample = rep(1:50, each = n)
-)
-
-# Creamos los tibbles para la densidad de Y0
-y0_density_tbl <- tibble(
-  x = x_data,
-  y = y0_density_data
-)
-
-# Creamos el tibble para la densidad de Ybar
-ybar_density_tbl <- tibble(
-  x = x_data,
-  y = ybar_density_data
-)
-
-# Creamos el tibble para la muestra de Y0
-y0_sample_tbl <- tibble(
-  y0 = y0_data
-)
-
-# Creamos el tibble para la muestra de Ybar
-ybar_sample_tbl <- y_samples_tbl |>
-  group_by(sample) |>
-  summarise(
-    ybar = mean(y),
-    s = sd(y)
-  )
-
-# Generamos el gráfico de densidad para Y0
-y0_density_plot <- y0_density_tbl |>
-  ggplot(aes(x = x, y = y)) +
-  geom_line(color = c_pal("C blue"), linewidth = 1) +
-  coord_cartesian(xlim = c(-2.5, 2.5)) +
-  labs(
-    title = TeX("Densidad de $Y_{0}$"),
-    x = TeX("$Y_{0}$"),
-    y = "Densidad"
-  ) +
-  theme_krul()
-
-# Generamos el gráfico de densidad para Ybar
-ybar_density_plot <- ybar_density_tbl |>
-  ggplot(aes(x = x, y = y)) +
-  geom_line(color = c_pal("C blue"), linewidth = 1) +
-  coord_cartesian(xlim = c(-2.5, 2.5)) +
-  labs(
-    title = TeX("Densidad de $\\bar{Y}$"),
-    x = TeX("$\\bar{Y}$"),
-    y = "Densidad"
-  ) +
-  theme_krul()
-
-# Generamos el histograma para la muestra de Y0
-y0_hist <- y0_sample_tbl |>
-  ggplot(aes(x = y0)) +
-  geom_histogram(
-    bins = 10,
-    color = "black",
-    fill = c_pal("C blue"),
-    alpha = 0.7
-  ) +
-  coord_cartesian(xlim = c(-2.5, 2.5)) +
-  labs(
-    title = TeX("Muestra de tamaño 50 de $Y_{0}$"),
-    x = TeX("$Y_{0}$"),
-    y = "Frecuencia"
-  ) +
-  theme_krul()
-
-# Generamos el histograma para la muestra de Ybar
-ybar_hist <- ybar_sample_tbl |>
-  ggplot(aes(x = ybar)) +
-  geom_histogram(
-    bins = 10,
-    color = "black",
-    fill = c_pal("C blue"),
-    alpha = 0.7
-  ) +
-  coord_cartesian(xlim = c(-2.5, 2.5)) +
-  labs(
-    title = TeX("Muestra de tamaño 50 de $\\bar{Y}$"),
-    x = TeX("$\\bar{Y}$"),
-    y = "Frecuencia"
-  ) +
-  theme_krul()
-
-# Combinamos los gráficos de densidad y los histogramas en un solo gráfico
-combined_y_plot <- ((y0_density_plot | y0_hist) /
-  (ybar_density_plot | ybar_hist)) +
-  plot_annotation(
-    title = "Comparación de la variable aleatoria original y la media muestral",
-    theme = theme(
-      plot.title = element_text(
-        size = 24,
-        face = "bold"
-      )
-    )
-  )
-
-# Mostramos el gráfico combinado
-combined_y_plot
 ```
-Tomaremos ahora un valor de $\alpha = 0.2$. Entonces el valor del cuantil de orden $1 - \alpha/2 = 0.9$ de la distribución $t$ de Student con $n-1 = 9$ grados de libertad es
-$$
-t_{\alpha/2, n-1} = t_{0.1, 9} \approx `r round(qt(0.1, df = 9, lower.tail = FALSE), 4)`
-$$
-En otras palabras,
-$$
-P(-t_{\alpha/2, n-1} < T < t_{\alpha/2, n-1}) = 1 - \alpha = 0.8
-$$
-```{r}
-#| fig-cap: "Densidad de la distribución $t$ de Student con $n-1=9$ grados de libertad, con los valores críticos para $\\alpha = 0.2$."
-#| fig-width: 12
-#| fig-height: 6
-#| message: false
-
-# Creamos los datos para la densidad de la distribución t de Student
-x_data <- seq(-4, 4, length.out = 1000)
-t_density_data <- dt(x_data, df = n - 1)
-
-# Creamos el tibble para la densidad de la distribución t de Student
-t_density_tbl <- tibble(
-  x = x_data,
-  y = t_density_data
-)
-
-# Calculamos el valor crítico t_alpha para
-# alpha = 0.2 y n - 1 = 9 grados de libertad
-t_alpha <- qt(0.1, df = n - 1, lower.tail = FALSE)
-
-# Creamos un tibble para la región crítica de la distribución t de Student
-t_middle_tbl <- t_density_tbl |>
-  filter(x >= -t_alpha, x <= t_alpha)
-
-# Generamos el gráfico de densidad para la distribución
-# t de Student con los valores críticos
-t_density_plot <- t_density_tbl |>
-  ggplot(aes(x = x, y = y)) +
-  geom_line(color = c_pal("C blue"), linewidth = 1) +
-  geom_area(
-    data = t_middle_tbl,
-    fill = c_pal("C blue"),
-    alpha = 0.7
-  ) +
-  geom_vline(
-    xintercept = c(-t_alpha, t_alpha),
-    color = c_pal("C green"),
-    linetype = "solid",
-    linewidth = 1
-  ) +
-  annotate(
-    "text",
-    x = t_alpha + 0.5,
-    y = 0.2,
-    label = TeX(paste0("$T = ", round(t_alpha, 4), "$")),
-    color = c_pal("C green"),
-    size = 5
-  ) +
-  annotate(
-    "text",
-    x = -t_alpha - 0.5,
-    y = 0.2,
-    label = TeX(paste0("$T = ", round(-t_alpha, 4), "$")),
-    color = c_pal("C green"),
-    size = 5
-  ) +
-  coord_cartesian(xlim = c(-4, 4)) +
-  labs(
-    title = TeX("Densidad de la distribución $t$ de Student"),
-    x = TeX("$T$"),
-    y = "Densidad"
-  ) +
-  theme_krul()
-
-# Mostramos el gráfico de densidad de la distribución t de Student
-t_density_plot
-```
-Usando este valor crítico, podemos construir los intervalos de confianza para $\mu$ con un nivel de confianza del $80\%$ asociados a cada una de las $50$ muestras de tamaño $10$ que tomamos para $\bar{Y}$. La siguiente figura ilustra estos intervalos de confianza, donde la línea horizontal azul representa el valor verdadero de $\mu = 0$.
-```{r}
-#| fig-cap: "Intervalos de confianza para $\\mu$ con un nivel de confianza del $80\\%$ asociados a cada una de las $50$ muestras de tamaño $10$ construidas para $\\bar{Y}$. La línea horizontal azul representa el valor verdadero de $\\mu = 0$."
-#| fig-width: 12
-#| fig-height: 6
-
-# Calculamos los intervalos de confianza para cada una de las 50 muestras
-confidence_intervals_tbl <- y_samples_tbl |>
-  group_by(sample) |>
-  summarise(
-    ybar = mean(y),
-    s = sd(y)
-  ) |>
-  mutate(
-    lower = ybar - t_alpha * s / sqrt(n),
-    upper = ybar + t_alpha * s / sqrt(n)
-  )
-
-# Graficamos los intervalos de confianza
-confidence_intervals_plot <- confidence_intervals_tbl |>
-  ggplot(aes(x = sample, y = ybar)) +
-  geom_errorbar(
-    aes(ymin = lower, ymax = upper),
-    width = 0.5,
-    color = c_pal("C green")
-  ) +
-  geom_point(
-    color = c_pal("C red"),
-    size = 2
-  ) +
-  geom_hline(
-    yintercept = mu,
-    color = c_pal("C blue"),
-    linewidth = 1
-  ) +
-  labs(
-    title = TeX(
-      "Intervalos de confianza del $80\\%$ para $\\mu$"
-    ),
-    x = "Muestra",
-    y = TeX("$Y_{0}$")
-  ) +
-  theme_krul()
-
-confidence_intervals_plot
-```
-
 
 ## El modelo de regresión lineal simple
 
@@ -366,7 +73,7 @@ b_{1}
 $$
 es el vector de parámetros desconocidos. Notemos que, en particular, el vector aleatorio $\hat{B}$ es un estimador insesgado del vector de parámetros $b$, es decir, $E[\hat{B}] = b$. Notemos además que si evaluamos el vector aleatorio $\hat{B}$ en los datos observados $Y = y$, obtenemos el vector de coeficientes $\hat{\beta}$ de la recta de mejor ajuste por mínimos cuadrados que obtuvimos en la sección anterior. Una vez hechas estas observaciones, nuestro siguiente objetivo será construir los intervalos de confianza para los parámetros $b_{0}$ y $b_{1}$.
 
-### Estimación de parámetros por intervalos de confianza
+## Estimación de parámetros por intervalos de confianza
 
 Empecemos por definir las cantidades 
 \begin{align*}
@@ -414,7 +121,7 @@ $$
 $$
 para $b_{1}$.
 
-### Bandas de confianza y de predicción
+## Bandas de confianza y de predicción
 
 Una vez obtenidos los intervalos de confianza para los parámetros $b_{0}$ y $b_{1}$, nos gustaría obtener ahora los intervalos de confianza para los posibles valores de la variable dependiente $Y_{0}$ en un valor específico de la variable independiente $X_{0} = x_{0}$. Para esto empezaremos por considerar la matriz de diseño en el punto $x_{0}$:
 $$ 
@@ -462,7 +169,7 @@ $$
 $$
 Nuevamente, el conjunto de todos estos intervalos de predicción para todos los posibles valores de $x_{0}$ se conoce como la \emph{banda de predicción} del modelo de regresión lineal simple.
 
-### Ejemplo de construcción de bandas de confianza y de predicción
+## Ejemplo de construcción de bandas de confianza y de predicción
 
 Supongamos que tenemos el vector $$x = \begin{bmatrix}
 1 \\ 2 \\ 3

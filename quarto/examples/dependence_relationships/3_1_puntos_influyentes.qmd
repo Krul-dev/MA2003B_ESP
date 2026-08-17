@@ -6,21 +6,15 @@ En el análisis de regresión, es fundamental identificar puntos de datos que pu
 
 La **distancia de Cook** es una medida utilizada para evaluar la influencia de un punto de datos en la estimación de los coeficientes de regresión. Se calcula como:
 
-$$
-D_i = \frac{\sum_{j=1}^{n} \left( \hat{y}_j - \hat{y}_{j(i)} \right)^2}{p \cdot \text{MSE}}
-$$
+$$D_i = \frac{\sum_{j=1}^{n} \left( \hat{y}_j - \hat{y}_{j(i)} \right)^2}{p \cdot \text{MSE}}$$
 
 Donde: - $\hat{y}_j$ es el valor ajustado de la $j$-ésima observación usando todos los datos. - $\hat{y}_{j(i)}$ es el valor ajustado de la $j$-ésima observación cuando el $i$-ésimo punto de datos es omitido. - $p$ es el número de parámetros del modelo, incluyendo el intercepto. - $\text{MSE}$ es el error cuadrático medio del modelo ajustado:
 
-$$
-\text{MSE} = \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{n - p}
-$$
+$$\text{MSE} = \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{n - p}$$
 
 Alternativamente, la distancia de Cook se puede calcular usando:
 
-$$
-D_i = \frac{r_i^2}{p \cdot (1 - h_i)} \cdot \frac{h_i}{1 - h_i}
-$$
+$$D_i = \frac{r_i^2}{p \cdot (1 - h_i)} \cdot \frac{h_i}{1 - h_i}$$
 
 Donde: - $r_i$ es el residuo estandarizado para el $i$-ésimo punto de datos. - $h_i$ es el valor de apalancamiento para el $i$-ésimo punto de datos.
 
@@ -104,21 +98,15 @@ En el análisis de regresión, el **apalancamiento** es una medida que indica cu
 
 La **matriz sombrero** ($\mathbf{H}$) es clave en el cálculo del apalancamiento. Está definida como:
 
-$$
-\mathbf{H} = \mathbf{\Phi}(\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}^\top
-$$
+$$\mathbf{H} = \mathbf{\Phi}(\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}^\top$$
 
 Donde $\mathbf{\Phi}$ es la matriz de diseño del modelo de regresión. El apalancamiento para la $i$-ésima observación es el valor $h_{ii}$ en la diagonal de la matriz sombrero, y se calcula como:
 
-$$
-h_i = \mathbf{\Phi}_i (\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}_i^\top
-$$
+$$h_i = \mathbf{\Phi}_i (\mathbf{\Phi}^\top \mathbf{\Phi})^{-1} \mathbf{\Phi}_i^\top$$
 
 Una observación se considera que tiene **alto apalancamiento** si $h_i$ es grande. Un umbral comúnmente utilizado es:
 
-$$
-h_i > \frac{2(p+1)}{n}
-$$
+$$h_i > \frac{2(p+1)}{n}$$
 
 donde $p$ es el número de variables independientes del modelo, y $n$ es el número total de observaciones.
 
@@ -184,16 +172,14 @@ En el análisis de regresión, **DFBETAS** es una medida que indica la influenci
 
 Para un coeficiente de regresión $\beta_j$, DFBETAS para la $i$-ésima observación se calcula como:
 
-$$
-\text{DFBETAS}_{ij} = \frac{\beta_j - \beta_{j(i)}}{\text{SE}(\beta_j(i))}
-$$
+$$\text{DFBETAS}_{ij} = \frac{\beta_j - \beta_{j(i)}}{\text{SE}(\beta_j(i))}$$
 
 Donde: - $\beta_j$ es el coeficiente estimado usando todos los datos. - $\beta_{j(i)}$ es el coeficiente estimado después de eliminar la $i$-ésima observación. - $\text{SE}(\beta_j(i))$ es el error estándar del coeficiente estimado después de eliminar la $i$-ésima observación.
 
 ### Interpretación de DFBETAS
 
--   **Valores cercanos a 0:** Indican que la observación no tiene un efecto significativo en el coeficiente de regresión.
--   **Valores absolutos mayores a 1:** Sugerirían que la observación tiene un impacto considerable en el coeficiente. Este umbral es una regla general, y en conjuntos de datos más grandes, un valor más conservador como $\frac{2}{\sqrt{n}}$ puede ser utilizado, donde $n$ es el número de observaciones.
+- **Valores cercanos a 0:** Indican que la observación no tiene un efecto significativo en el coeficiente de regresión.
+- **Valores absolutos mayores a 1:** Sugerirían que la observación tiene un impacto considerable en el coeficiente. Este umbral es una regla general, y en conjuntos de datos más grandes, un valor más conservador como $\frac{2}{\sqrt{n}}$ puede ser utilizado, donde $n$ es el número de observaciones.
 
 ## Cálculo de DFBETAS en R
 

@@ -1,6 +1,8 @@
 # Transformación óptima
 
-Una manera de cuantificar la normalidad de una muestra es mediante el cálculo de su máxima verosimilitud bajo el supuesto de normalidad. (O, de manera equivalente, el cálculo de su máxima log‑verosimilitud.) Recordemos que dada una muestra $X_1, X_2, \ldots, X_n$ el valor máximo de su log-verosimilitud está dado por: $$\text{MLE} = \ell(\hat{\mu}, \hat{\sigma}^2) = -\frac{n}{2} \log(2 \pi) - n \log(\hat{\sigma}) - \frac{n}{2}.$$ donde $$\begin{aligned}
+Una manera de cuantificar la normalidad de una muestra es mediante el cálculo de su máxima verosimilitud bajo el supuesto de normalidad. (O, de manera equivalente, el cálculo de su máxima log‑verosimilitud.) Recordemos que dada una muestra $X_1, X_2, \ldots, X_n$ el valor máximo de su log-verosimilitud está dado por:
+$$\text{MLE} = \ell(\hat{\mu}, \hat{\sigma}^2) = -\frac{n}{2} \log(2 \pi) - n \log(\hat{\sigma}) - \frac{n}{2}.$$
+donde $$\begin{aligned}
 \hat{\mu} = & \bar{X} = \frac{1}{n} \sum_{i=1}^{n} X_i, \\
 \hat{\sigma}^2 = & \widetilde{S}^{2} = \frac{1}{n} \sum_{i=1}^{n} (X_i - \bar{X})^2.
 \end{aligned}$$ Entre mayor sea este valor, mejor será el ajuste de nuestra muestra a una distribución normal. Por otro lado, sabemos que las transformaciones de Box–Cox pueden mejorar o empeorar la normalidad de una muestra dependiendo del valor del parámetro $\lambda$ utilizado. Se sigue que, para sacar el mayor provecho posible a estas transformaciones, debemos buscar el valor de $\lambda$ que maximice la log‑verosimilitud de la muestra transformada, obteniendo así la *transformación óptima* de Box–Cox para nuestros datos.

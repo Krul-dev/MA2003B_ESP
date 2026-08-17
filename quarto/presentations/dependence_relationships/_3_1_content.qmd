@@ -1,0 +1,255 @@
+# Método de mínimos cuadrados
+
+# El modelo de regresión lineal simple
+
+# Significancia y verosimilitud en el modelo de regresión lineal
+
+### Significancia y verosimilitud en el modelo de regresión lineal
+
+Recordemos que estamos considerando un modelo de regresión lineal de la forma:
+$$
+Y_{0} = b_{0} + b_{1}X_{0\, 1} + b_{2}X_{0\, 2} + \cdots + b_{p}X_{0\, p} + \epsilon_{0}
+$$
+donde $\epsilon_{0} \sim \mathcal{N}(0, \sigma^{2})$.
+
+\bigpause 
+
+Notemos que este modelo depende de los parámetros
+$$
+b_{0}, b_{1}, \ldots, b_{p} \qquad \text{y}  \qquad \sigma^{2}
+$$
+\pause
+
+Introduciremos ahora los conceptos de \alert{significancia} y de \alert{verosimilitud} de estos parámetros.
+
+## La función de verosimilitud 
+
+### La función de verosimilitud 
+
+Supongamos que tenemos un conjunto de datos 
+$$
+x = \begin{bmatrix}
+x_{11} & x_{12} & \cdots & x_{1p} \\
+x_{21} & x_{22} & \cdots & x_{2p} \\
+\vdots & \vdots & \ddots & \vdots \\
+x_{n1} & x_{n2} & \cdots & x_{np}
+\end{bmatrix} \qquad 
+y = \begin{bmatrix}
+y_{1} \\
+y_{2} \\
+\vdots \\
+y_{n}
+\end{bmatrix}
+$$
+
+\pause
+
+La función de verosimilitud del modelo de regresión lineal es una función que nos da una medida de la consistencia entre los datos dados y los parámetros considerados en el modelo.
+
+### 
+
+En nuestro caso, la función de verosimilitud es:
+$$
+L(b_{0}, b_{1}, \ldots, b_{p}, \sigma^{2} | x, y) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^{2}}} \exp\left( -\frac{(y_{i} - (b_{0} + b_{1}x_{i1} + \cdots + b_{p}x_{ip}))^{2}}{2\sigma^{2}} \right)
+$$
+que corresponde, simplemente, a la función de densidad del modelo considerado con los parámetros indicados y los datos observados.
+
+\bigpause 
+
+Notemos que en esta función estamos considerando los datos $x$ e $y$ como fijos, y los parámetros $b_{0}, b_{1}, \ldots, b_{p}$ y $\sigma^{2}$ como variables.
+
+\bigpause 
+
+Nuestro siguiente objetivo será encontrar los valores de estos parámetros que maximicen la función de verosimilitud, es decir, que hagan que los datos observados sean lo más consistentes posible con el modelo.
+
+###
+
+Empezaremos por considerar la log-verosimilitud, que es simplemente el logaritmo natural de la función de verosimilitud:
+\begin{align*}
+\ell(b_{0}, b_{1}, \ldots, b_{p}, \sigma^{2} | x, y) = & \log L(b_{0}, b_{1}, \ldots, b_{p}, \sigma^{2} | x, y) \\
+= & -\frac{n}{2} \log(2\pi\sigma^{2}) - \frac{1}{2\sigma^{2}} \sum_{i=1}^{n} (y_{i} - (b_{0} + b_{1}x_{i1} + \ldots + b_{p}x_{ip}))^{2} 
+\end{align*}
+
+\pause
+
+Para encontrar los valores de 
+$$
+b = \begin{bmatrix} 
+b_{0} \\
+b_{1} \\ 
+\vdots \\
+b_{p}
+\end{bmatrix}
+$$
+que maximicen la log-verosimilitud, nos basta con minimizar la expresión:
+$$
+ \sum_{i=1}^{n} (y_{i} - (b_{0} + b_{1}x_{i1} + \cdots + b_{p}x_{ip}))^{2}
+$$ 
+
+###
+
+Se sigue que podemos utilizar el método de los mínimos cuadrados para encontrar los valores de los parámetros que buscamos: 
+$$
+b_{\text{MLE}} = \hat{\beta} = (\Phi^{T}\Phi)^{-1}\Phi^{T}y 
+$$
+donde 
+$$
+\Phi = \begin{bmatrix} 
+1 & x_{11} & x_{12} & \cdots & x_{1p} \\ 
+1 & x_{21} & x_{22} & \cdots & x_{2p} \\ 
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+1 & x_{n1} & x_{n2} & \cdots & x_{np}
+\end{bmatrix}
+$$
+es la matriz de diseño asociada a nuestros datos.
+
+###
+
+Finalmente, para encontrar el valor de $\sigma^{2}$ que maximice la log-verosimilitud, podemos derivar la expression 
+$$
+\ell(b_{0}, b_{1}, \ldots, b_{p}, \sigma^{2} | x, y) =  -\frac{n}{2} \log(2\pi\sigma^{2}) - \frac{1}{2\sigma^{2}} \sum_{i=1}^{n} (y_{i} - (b_{0} + b_{1}x_{i1} + \cdots + b_{p}x_{ip}))^{2}
+$$
+con respecto a $\sigma^{2}$ y encontrar el valor que hace que la derivada sea cero.
+
+###
+
+Esto nos lleva a la siguiente expresión para el estimador de máxima verosimilitud de $\sigma^{2}$:
+$$
+\sigma^{2}_{\text{MLE}} = \frac{1}{n} \sum_{i=1}^{n} \big[y_{i} - (\hat{\beta}_{0} + \hat{\beta}_{1}x_{i1} + \cdots + \hat{\beta}_{p}x_{ip})\big]^{2} = \frac{\text{sse}}{n}
+$$ 
+
+\pause
+
+Desde este punto de vista, hemos obtenido una función que a cada conjunto de datos le asigna su máxima log-verosimilitud bajo el modelo de regresión lineal.
+
+\bigpause
+
+Notemos que este valor está dado de manera explícita por:
+$$
+\ell(\hat{\beta}, \sigma^{2}_{\text{MLE}} | x, y) = -\frac{n}{2} \log(2\pi) - \frac{n}{2} \log\left( \frac{\text{sse}}{n} \right) - \frac{n}{2}
+$$
+
+## Significancia del modelo y de los parámetros
+
+### Significancia del modelo y de los parámetros 
+
+Nos gustaría ahora poder afirmar que los valores de la variables independientes 
+$$
+X_{0\, 1}, X_{0\, 2}, \ldots, X_{0\, p}
+$$
+tienen un efecto significativo en la variable dependiente $Y_{0}$.
+
+\bigpause
+
+En particular, nos gustaría poder afirmar que al menos uno de los parámetros 
+$$
+b_{1}, b_{2}, \ldots, b_{p}
+$$
+es significativamente distinto de cero.
+
+\bigpause 
+
+De acuerdo al formalismo de las pruebas de hipótesis, debemos plantear una hipótesis nula que diga que todos los parámetros son iguales y tratar de reunir una evidencia estadísticamente significativa que nos permita rechazar esta hipótesis.
+
+###
+
+Con este objetivo, consideraremos
+$$
+\text{SST} = \sum_{i=1}^{n} (Y_{i} - \bar{Y})^{2} = \| Y - \bar{Y}\mathbf{1} \|^{2} 
+$$
+donde 
+$$
+\bar{Y} = \frac{1}{n} \sum_{i=1}^{n} Y_{i} 
+$$
+es la media muestral de la variable dependiente y $\mathbf{1}$ es el vector columna de $n$ entradas iguales a uno.
+
+###
+
+La SST se puede interpretar como una variable aleatoria que mide la variabilidad total de los datos asociados a una observación y se puede descomponer como 
+$$
+SST = SSR + SSE 
+$$ 
+donde 
+$$ 
+SSE = \sum_{i=1}^{n} (Y_{i} - \hat{Y}_{i})^{2} = \| Y - \hat{Y} \|^{2} 
+$$ 
+es la \alert{suma de los errores al cuadrado} y que corresponde a la variabilidad de los datos que no es explicada por el modelo, y 
+$$ 
+SSR = \sum_{i=1}^{n} (\hat{Y}_{i} - \bar{Y})^{2} = \| \hat{Y} - \bar{Y}\mathbf{1} \|^{2}
+$$ 
+es la \alert{suma de cuadrados de la regresión} y corresponde a la variabilidad de los datos que nuestro modelo explica.
+
+
+### 
+
+
+Recordemos que
+$$
+\frac{SSE}{\sigma^{2}}  \sim \chi^{2}_{n - p - 1} 
+$$ 
+
+\pause 
+Por otro lado, bajo la hipótesis nula 
+$$
+b_{1} = b_{2} = \cdots = b_{p} = 0 
+$$
+se puede demostrar que 
+$$ 
+\frac{SSR}{\sigma^{2}} \sim \chi^{2}_{p} 
+$$ 
+y además, que $SSE$ y $SSR$ son independientes.
+
+\bigpause 
+
+Con estas consideraciones en mente, podemos definir el estadístico de prueba 
+$$ 
+F = \frac{SSR / p}{SSE / (n - p - 1)} \sim F_{p, n - p - 1} 
+$$ 
+donde $F_{p, n - p - 1}$ es la distribución $F$ de Fisher con $p$ y $n - p - 1$ grados de libertad.
+
+###
+
+Notemos que valores grandes de $F$ indican que la variabilidad explicada por el modelo es grande en comparación con la variabilidad no explicada, lo cual constituye evidencia en contra de la hipótesis nula.
+
+\bigpause 
+
+Por lo tanto, para nuestra prueba de hipótesis, usaremos una regla de una cola por la derecha.
+
+\bigpause 
+
+En particular, si $f$ es el valor de nuestro estadístico $F$ evaluado en una observación $Y=y$, entonces el $p$-valor de la prueba es 
+$$
+p_{F} = P_{F}(F \geq f)
+$$ 
+
+### 
+
+Si $p_{F} < \alpha$, para algún nivel de significancia $\alpha$ preestablecido, entonces rechazamos la hipótesis nula y concluimos que al menos uno de los parámetros $b_{1}, b_{2}, \ldots, b_{p}$ es significativamente diferente de cero.
+
+
+\bigpause 
+
+Resumiendo, tenemos el siguiente procedimiento para evaluar la significancia del modelo de regresión lineal: 
+
+
+### 
+\begin{enumerate} 
+\item Plantear la hipótesis nula y la hipótesis alternativa: 
+$$
+\begin{array}{rl}
+H_{0}:  & \text{Todos los parámetros son iguales a cero, es decir $b_{1} = b_{2} = \cdots = b_{p} = 0$} \\
+H_{1}:  & \text{Al menos uno de los parámetros $b_{1}$, $b_{2}$, \ldots, $b_{p}$ es diferente de cero.}
+\end{array}
+$$
+\item \pause Calcular el estadístico de prueba 
+$$ 
+F = \frac{SSR / p}{SSE / (n - p - 1)} 
+$$ 
+para el vector de datos observados $Y = y$. 
+\item \pause Calcular el $p$-valor de la prueba 
+$$ 
+p_{F} = P_{F_{p, n - p - 1}}(F \geq f) 
+$$ 
+donde $f$ es el valor del estadístico $F$ calculado en el paso anterior. 
+\item \pause Si $p_{F} < \alpha$, para algún nivel de significancia $\alpha$ preestablecido, entonces rechazamos la hipótesis nula.
+\end{enumerate}
