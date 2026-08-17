@@ -34,14 +34,10 @@ Ya una vez definidas estas cantidades, podemos ahora enunciar el procedimieto pa
 
 Para evaluar la significancia de un modelo de regresión lineal, seguiremos los siguientes pasos:
 
-1.  Plantear la hipótesis nula y la hipótesis alternativa:
-    $$\begin{array}{rl}H_{0}:  & \text{Todos los parámetros son iguales a cero, es decir $b_{1} = b_{2} = \cdots = b_{p} = 0$} \\H_{1}:  & \text{Al menos uno de los parámetros $b_{1}$, $b_{2}, \ldots, b_{p}$ es diferente de cero.}\end{array}$$
-2.  Calcular el estadístico de prueba
-    $$F = \frac{SSR / p}{SSE / (n - p - 1)} \sim F_{p, n-p-1}$$
-    para el vector de datos observados $Y = y$.
+1.  Plantear la hipótesis nula y la hipótesis alternativa: $$\begin{array}{rl}H_{0}:  & \text{Todos los parámetros son iguales a cero, es decir $b_{1} = b_{2} = \cdots = b_{p} = 0$} \\H_{1}:  & \text{Al menos uno de los parámetros $b_{1}$, $b_{2}, \ldots, b_{p}$ es diferente de cero.}\end{array}$$
+2.  Calcular el estadístico de prueba $$F = \frac{SSR / p}{SSE / (n - p - 1)} \sim F_{p, n-p-1}$$ para el vector de datos observados $Y = y$.
 3.  Calcular el $p$-valor de la prueba $$ 
-    p_{F} = P_{F_{p, n - p - 1}}(F \geq f) $$
-    donde $f$ es el valor del estadístico $F$ calculado en el paso anterior.
+    p_{F} = P_{F_{p, n - p - 1}}(F \geq f) $$ donde $f$ es el valor del estadístico $F$ calculado en el paso anterior.
 4.  Si $p_{F} < \alpha$, para algún nivel de significancia $\alpha$ preestablecido, entonces rechazamos la hipótesis nula y concluimos que al menos uno de los parámetros $b_{1}, b_{2}, \ldots, b_{p}$ es significativamente diferente de cero.
 
 ## Ejemplo
