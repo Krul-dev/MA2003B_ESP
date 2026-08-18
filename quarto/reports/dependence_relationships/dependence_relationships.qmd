@@ -45,11 +45,6 @@ format:
 \textbf{\large Raúl Gómez Muñoz \\
 Blanca Rosa Ruiz Hernández}
 \end{flushright}
-
-
-
-
-
   
 \cleardoublepage
 
@@ -62,6 +57,7 @@ Blanca Rosa Ruiz Hernández}
 # {{< include _1_univariate_inference.qmd >}}
 # {{< include _2_simple_linear_regression.qmd >}}
 # {{< include _3_likelihood_significance.qmd >}}
+# {{< include _4_model_adecuacy.qmd >}}
 #
 # \part{Análisis discriminante lineal}
 #
@@ -83,6 +79,7 @@ Blanca Rosa Ruiz Hernández}
 {{< include _1_univariate_inference.qmd >}}
 {{< include _2_simple_linear_regression.qmd >}}
 {{< include _3_multiple_linear_regression.qmd >}}
+{{< include _4_model_adecuacy.qmd >}}
 
 \part{Análisis discriminante lineal}
 

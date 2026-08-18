@@ -1,0 +1,542 @@
+# Adecuación del modelo lineal
+
+### Adecuación del modelo lineal
+
+Hasta el momento hemos considerado únicamente modelos lineales de la forma 
+$$
+Y_{0} = b_{0} + b_{1} X_{01} + b_{2} X_{02} + \cdots + b_{p} X_{0p} + \epsilon_{0} 
+$$
+donde $Y_{0}$ es la variable dependiente, $X_{01}, X_{02}, \ldots, X_{0p}$ son las variables independientes, $b_{0}, b_{1}, \ldots, b_{p}$ son los coeficientes del modelo y $\epsilon_{0}$ es un término de error aleatorio con distribución $\mathcal{N}(0, \sigma^{2})$.
+
+\bigpause
+
+Una vez que hemos estimado estos parámetros utilizando el método de mínimos cuadrados, podemos utilizar el modelo ajustado, y las bandas de confianza y predicción, para realizar predicciones sobre nuevos valores de las variables independientes. 
+
+\bigpause
+
+Notemos que este proceso se puede aplicar a cualquier conjunto de datos dado, sin embargo para que estas predicciones sean de utilidad, es necesario que el comportamiento de nuestros datos siga una tendencia lineal, ya que en caso contrario las predicciones podrían no ser confiables.
+
+### Ajuste por mínimos cuadrados para diferentes conjuntos de datos.
+
+```{r}
+#| fig-width:  16
+#| fig-height: 8
+#| message: false
+#| echo: false
+
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+library(kableExtra)
+library(ggfortify)
+
+
+set.seed(123)
+
+n <- 500
+x_data1 <- runif(n, min = 0, max = 10)
+epsilon_data1 <- rnorm(n, mean = 0, sd = 50)
+y_data1 <- (x_data1)^3 + epsilon_data1
+
+x_data2 <- runif(n, min = 0, max = 10)
+epsilon_data2 <- rnorm(n, mean = 0, sd = 0.1)
+y_data2 <- sin(x_data2) + epsilon_data2
+
+x_data3 <- runif(n, min = 0, max = 10)
+y_data3 <- runif(n, min = 0, max = 10)
+
+x_data4 <- runif(n, min = 0, max = 10)
+y_data4 <- mapply(function(mu, sigma) rnorm(1, mean = mu, sd = sigma),
+  mu = x_data4,
+  sigma = x_data4
+)
+
+sample_data1_tbl <- tibble(
+  x = x_data1,
+  y = y_data1
+)
+
+sample_data2_tbl <- tibble(
+  x = x_data2,
+  y = y_data2
+)
+
+sample_data3_tbl <- tibble(
+  x = x_data3,
+  y = y_data3
+)
+
+sample_data4_tbl <- tibble(
+  x = x_data4,
+  y = y_data4
+)
+
+sample_data1_plot <- sample_data1_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos cúbicos",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data2_plot <- sample_data2_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos senoidales",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data3_plot <- sample_data3_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos aleatorios",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data4_plot <- sample_data4_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos con varianza creciente",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data_plot <- (sample_data1_plot + sample_data2_plot) /
+  (sample_data3_plot + sample_data4_plot)
+
+sample_data_plot
+```
+
+###
+
+Es bastante claro que en estos casos el ajuste por mínimos cuadrados no es el método adecuado para realizar predicciones confiables.
+
+\bigpause 
+
+En general, este método solo es efectivo cuando se cumplen ciertas hipótesis que estudiaremos a continuación.
+
+## Métricas de bondad de ajuste
+
+### Métricas de bondad de ajuste
+
+Estudiaremos ahora algunas métricas que nos permiten evaluar la adecuación del modelo de regresión lineal múltiple a los datos observados.
+
+\bigpause
+
+En particular, introduciremos el coeficiente de determinación, el coeficiente de determinación ajustado y el error estándar de la estimación.
+
+\bigpause 
+
+Estas métricas nos dan una primera idea de la adecuación del modelo, pero no nos permiten evaluar si se cumplen las condiciones necesarias para que el modelo sea válido.
+
+### Coeficiente de determinación
+
+El coeficiente de determinación está dado por 
+$$
+R^{2} = 1 - \frac{SSE}{SST} 
+$$ 
+donde 
+$$ 
+SSE = \sum_{i=1}^{n} (y_{i} - \hat{y}_{i})^{2} 
+$$ 
+es la suma de los cuadrados de los errores y 
+$$ 
+SST = \sum_{i=1}^{n} (y_{i} - \bar{y})^{2} 
+$$ 
+es la suma total de los cuadrados.
+
+\bigpause 
+
+Este coeficiente mide la proporción de la variabilidad total de la variable dependiente que es explicada por el modelo de regresión.
+
+###
+
+Notemos que
+$$
+SST = SSR + SSE 
+$$ 
+donde 
+$$ 
+SSR = \sum_{i=1}^{n} (\hat{y}_{i} - \bar{y})^{2} 
+$$ 
+es la suma de los cuadrados de la regresión.
+
+\bigpause
+
+Se sigue que podemos expresar el coeficiente de determinación como 
+$$ 
+R^{2} = \frac{SSR}{SST} 
+$$ 
+
+\pause
+
+En particular, el coeficiente de determinación siempre toma valores entre 0 y 1, donde un valor cercano a 1 indica que el modelo explica una gran proporción de la variabilidad de la variable dependiente, mientras que un valor cercano a 0 indica que el modelo no explica mucha de la variabilidad.
+
+### Coeficiente de determinación ajustado
+
+Además del coeficiente de determinación, es común utilizar el coeficiente de determinación ajustado, el cual tiene en cuenta el número de variables independientes en el modelo. Este coeficiente está dado por 
+$$ 
+R_{adj}^{2} = 1 - \left( \frac{n - 1}{n - (p + 1)} \right) \frac{SSE}{SST} 
+$$ 
+donde $p$ es el número de variables independientes en el modelo.
+
+\bigpause 
+
+El coeficiente de determinación ajustado penaliza la inclusión de variables independientes que no contribuyen significativamente a la explicación de la variabilidad de la variable dependiente.
+
+\bigpause
+
+Por lo tanto, es una medida más adecuada para comparar modelos con diferentes números de variables independientes.
+
+### Error estándar de la estimación
+
+Finalmente, también podemos considerar el error estándar de la estimación, el cual está dado por 
+$$ 
+SEE = \sqrt{\frac{SSE}{n - (p + 1)}} 
+$$
+
+\pause
+
+Notemos que estas cantidades nos proporcionan una idea general de la adecuación del modelo, pero no nos permitirán evaluar si se cumplen las condiciones necesarias para que el modelo sea válido. 
+
+## Significancia global del modelo 
+
+### Significancia global del modelo 
+
+Una de las condiciones más importantes para que el modelo de regresión lineal múltiple sea adecuado es que al menos una de las variables independientes tenga un efecto significativo sobre la variable dependiente.
+
+\bigpause
+
+Recordemos que en esta prueba, consideramos las hipótesis nula y alternativa: 
+$$ 
+H_{0}: b_{1} = b_{2} = \ldots = b_{p} = 0 
+$$ 
+$$ 
+H_{A}: \text{Al menos uno de los } b_{j} \text{ es diferente de 0} 
+$$ 
+La estadística de prueba para esta hipótesis está dada por 
+$$ 
+F = \frac{(SSR / p)}{(SSE / (n - (p + 1)))} 
+$$ 
+donde $SSR$ es la suma de los cuadrados de la regresión y $SSE$ es la suma de los cuadrados de los errores.
+
+###
+
+Bajo la hipótesis nula, esta estadística sigue una distribución $F$ con $p$ y $n - (p + 1)$ grados de libertad.
+
+\bigpause
+
+Por lo tanto, podemos calcular el valor $p$ asociado a esta estadística y compararlo con un nivel de significancia predefinido (por ejemplo, $\alpha = 0.05$) para decidir si rechazamos o no la hipótesis nula.
+
+\bigpause
+
+Si rechazamos la hipótesis nula, podemos concluir que al menos una de las variables independientes tiene un efecto significativo sobre la variable dependiente, lo cual es una condición necesaria para que el modelo sea adecuado. 
+
+## Diagnóstico de residuos 
+
+### Diagnóstico de residuos
+
+Otra condición importante para la adecuación del modelo de regresión lineal múltiple es que los residuos del modelo (es decir, las diferencias entre los valores observados y los valores predichos por el modelo) deben seguir una distribución normal con media cero y varianza constante.
+
+\bigpause 
+
+Para evaluar esta condición, podemos utilizar diversas herramientas gráficas y estadísticas. 
+Una herramienta gráfica común es el gráfico de residuos versus valores ajustados, en el cual graficamos los residuos del modelo en función de los valores predichos por el modelo.
+
+\bigpause 
+
+En este gráfico, esperamos ver una distribución aleatoria de los residuos alrededor de cero, sin patrones evidentes.
+
+\bigpause
+
+Si observamos patrones en este gráfico (por ejemplo, una forma curva), esto puede indicar que el modelo no es adecuado y que se deben considerar transformaciones de las variables o la inclusión de términos adicionales en el modelo.
+
+
+### Q-Q plot
+
+Otra herramienta gráfica es el gráfico Q-Q (quantile-quantile), en el cual graficamos los cuantiles de los residuos del modelo contra los cuantiles de una distribución normal.
+
+\bigpause
+
+En este gráfico, esperamos ver una línea recta si los residuos siguen una distribución normal.
+
+\bigpause 
+
+Si observamos desviaciones significativas de la línea recta, esto puede indicar que los residuos no siguen una distribución normal, lo cual puede afectar la validez del modelo. 
+
+###
+
+Además de las herramientas gráficas, también podemos utilizar pruebas estadísticas para evaluar la normalidad y homocedasticidad de los residuos.
+
+\bigpause
+
+Por ejemplo, podemos utilizar la prueba de Shapiro-Wilk para evaluar la normalidad de los residuos, y la prueba de Breusch-Pagan para evaluar la homocedasticidad (es decir, si la varianza de los residuos es constante).
+
+\bigpause 
+
+Si estas pruebas indican que los residuos no cumplen con estas condiciones, esto puede afectar la validez del modelo y se deben considerar ajustes adicionales. 
+
+\bigpause
+
+En resumen, la adecuación del modelo de regresión lineal múltiple depende de diversas condiciones que deben ser evaluadas cuidadosamente.
+
+###
+
+El coeficiente de determinación y el coeficiente de determinación ajustado nos proporcionan una idea general de la adecuación del modelo, mientras que la prueba de significancia y el diagnóstico de residuos nos permiten evaluar condiciones específicas necesarias para la validez del modelo.
+
+\bigpause 
+
+Es importante utilizar estas herramientas de manera conjunta para asegurar que el modelo sea adecuado para los datos analizados. 
+
+## Puntos influyentes y de alta palanca 
+
+### Puntos influyentes y de alta palanca
+
+Finalmente, otra consideración importante en la adecuación del modelo de regresión lineal múltiple es la presencia de puntos influyentes y de alta palanca en los datos.
+
+\bigpause 
+
+Estos puntos pueden tener un impacto significativo en los resultados del modelo y pueden distorsionar las estimaciones de los parámetros y las predicciones.
+
+\bigpause 
+
+Para identificar estos puntos, podemos utilizar diversas medidas estadísticas, como la distancia de Cook y la palanca de Hat.
+
+\bigpause 
+
+La distancia de Cook mide el impacto de cada punto en las estimaciones de los parámetros del modelo, mientras que la palanca de Hat mide la influencia de cada punto en los valores predichos por el modelo.
+
+###
+
+En general, se considera que un punto es influyente si su distancia de Cook es mayor que un umbral predefinido (por ejemplo, $4/n$), y se considera que un punto tiene alta palanca si su palanca de Hat es mayor que $2(p + 1)/n$, donde $p$ es el número de variables independientes y $n$ es el número de observaciones.
+
+\bigpause 
+
+Al identificar estos puntos, podemos evaluar su impacto en el modelo y considerar si es necesario excluirlos o tratarlos de manera especial.
+
+\bigpause 
+
+En algunos casos, puede ser apropiado utilizar técnicas de regresión robusta que sean menos sensibles a la presencia de puntos influyentes y de alta palanca.
+
+###
+
+En resumen, la identificación y tratamiento de puntos influyentes y de alta palanca es una parte importante del proceso de evaluación de la adecuación del modelo de regresión lineal múltiple.
+
+\bigpause 
+
+Al considerar estas medidas junto con las otras herramientas discutidas en esta sección, podemos asegurar que el modelo sea adecuado y confiable para los datos analizados. 
+
+## Heterocedasticidad 
+
+### Heterocedasticidad
+
+Otra condición importante para la adecuación del modelo de regresión lineal múltiple es la homocedasticidad, es decir, que la varianza de los residuos sea constante a lo largo de todos los niveles de las variables independientes.
+
+\bigpause
+
+Si la varianza de los residuos varía significativamente, esto puede indicar la presencia de heterocedasticidad, lo cual puede afectar la validez del modelo y las inferencias estadísticas basadas en él.
+
+\bigpause
+
+Para evaluar la homocedasticidad, podemos utilizar diversas herramientas gráficas y estadísticas.
+
+\bigpause
+
+Una herramienta gráfica común es el gráfico de residuos versus valores ajustados, en el cual graficamos los residuos del modelo en función de los valores predichos por el modelo.
+
+\bigpause
+
+En este gráfico, esperamos ver una distribución aleatoria de los residuos alrededor de cero, sin patrones evidentes. Si observamos un patrón en forma de embudo (es decir, que la variabilidad de los residuos aumenta o disminuye con los valores ajustados), esto puede indicar la presencia de heterocedasticidad.
+
+###
+
+Además de las herramientas gráficas, también podemos utilizar pruebas estadísticas para evaluar la homocedasticidad de los residuos.
+
+\bigpause
+
+Por ejemplo, podemos utilizar la prueba de Breusch-Pagan o la prueba de White para evaluar si la varianza de los residuos es constante.
+
+\bigpause 
+
+Si estas pruebas indican que hay heterocedasticidad presente, esto puede afectar la validez del modelo y se deben considerar ajustes adicionales.
+
+\bigpause 
+
+En algunos casos, puede ser apropiado utilizar transformaciones de las variables dependientes o independientes para estabilizar la varianza, o utilizar técnicas de regresión robusta que sean menos sensibles a la heterocedasticidad.
+
+###
+
+En resumen, la evaluación de la homocedasticidad es una parte importante del proceso de evaluación de la adecuación del modelo de regresión lineal múltiple.
+
+\bigpause 
+
+Al considerar estas herramientas junto con las otras discutidas en esta sección, podemos asegurar que el modelo sea adecuado y confiable para los datos analizados. 
+
+## Multicolinealidad 
+
+Finalmente, otra consideración importante en la adecuación del modelo de regresión lineal múltiple es la presencia de multicolinealidad entre las variables independientes.
+
+\bigpause 
+
+La multicolinealidad ocurre cuando dos o más variables independientes están altamente correlacionadas entre sí, lo cual puede dificultar la estimación precisa de los coeficientes del modelo y afectar la interpretación de los resultados.
+
+\bigpause 
+
+Para evaluar la multicolinealidad, podemos utilizar diversas medidas estadísticas, como el factor de inflación de la varianza (VIF, por sus siglas en inglés). 
+
+\bigpause 
+
+El VIF mide cuánto se incrementa la varianza de un coeficiente estimado debido a la multicolinealidad con otras variables independientes. 
+
+\bigpause 
+
+En general, se considera que una variable independiente tiene un problema significativo de multicolinealidad si su VIF es mayor que 10. 
+
+###
+
+Al identificar variables con alta multicolinealidad, podemos considerar diversas estrategias para abordar este problema. Una opción es eliminar una o más de las variables altamente correlacionadas del modelo, lo cual puede simplificar el modelo y mejorar la interpretabilidad. 
+
+\bigpause 
+
+Otra opción es combinar las variables correlacionadas en una sola variable mediante técnicas como el análisis de componentes principales. En algunos casos, puede ser apropiado utilizar técnicas de regresión regularizada, como la regresión Ridge o Lasso, que pueden manejar mejor la multicolinealidad al penalizar los coeficientes del modelo. 
+
+\bigpause 
+
+En resumen, la evaluación y manejo de la multicolinealidad es una parte importante del proceso de evaluación de la adecuación del modelo de regresión lineal múltiple. 
+
+## Linealidad 
+
+### Linealidad
+
+Otra condición fundamental para la adecuación del modelo de regresión lineal múltiple es la linealidad, es decir, que la relación entre las variables independientes y la variable dependiente sea lineal.
+
+\bigpause 
+
+Si la relación no es lineal, el modelo puede no capturar adecuadamente la relación entre las variables, lo cual puede afectar la validez del modelo y las predicciones basadas en él.
+
+\bigpause 
+
+Para evaluar la linealidad, podemos utilizar diversas herramientas gráficas y estadísticas.
+
+###
+
+Una herramienta gráfica común es el gráfico de residuos versus cada una de las variables independientes, en el cual graficamos los residuos del modelo en función de cada variable independiente.
+
+\bigpause 
+
+En estos gráficos, esperamos ver una distribución aleatoria de los residuos alrededor de cero, sin patrones evidentes.
+
+\bigpause
+
+Si observamos patrones curvos o sistemáticos en estos gráficos, esto puede indicar que la relación entre la variable independiente y la variable dependiente no es lineal.
+
+###
+
+Además de las herramientas gráficas, también podemos utilizar pruebas estadísticas para evaluar la linealidad. Por ejemplo, podemos utilizar la prueba de Ramsey RESET para evaluar si hay términos no lineales significativos en el modelo.
+
+\bigpause 
+
+Si esta prueba indica que hay términos no lineales presentes, esto puede afectar la validez del modelo y se deben considerar ajustes adicionales.
+
+\bigpause 
+
+En algunos casos, puede ser apropiado utilizar transformaciones de las variables dependientes o independientes para lograr una relación más lineal, o incluir términos polinomiales o interacciones en el modelo para capturar relaciones no lineales.
+
+## Ejemplos 
+
+Recordemos que teníamos los siguientes ejemplos de conjuntos de datos:
+```{r}
+#| fig-cap: "Ajuste por mínimos cuadrados para diferentes conjuntos de datos."
+#| fig-width:  12
+#| fig-height: 6
+#| message: false
+
+sample_data_plot
+```
+Podemos ajustar un modelo de regresión lineal simple a cada uno de estos conjuntos de datos y evaluar la adecuación del modelo utilizando las herramientas discutidas en esta sección. 
+```{r} 
+#| warning: false
+#| message: false
+
+model1 <- lm(y ~ x, data = sample_data1_tbl)
+model2 <- lm(y ~ x, data = sample_data2_tbl)
+model3 <- lm(y ~ x, data = sample_data3_tbl)
+model4 <- lm(y ~ x, data = sample_data4_tbl)
+
+summary(model1)
+
+autoplot(model1)
+```
+Para el segundo conjunto de datos:
+```{r}
+#| warning: false
+#| message: false
+
+summary(model2)
+autoplot(model2)
+```
+Para el tercer conjunto de datos: 
+```{r}
+#| warning: false
+#| message: false
+
+summary(model3)
+autoplot(model3)
+```
+Finalmente, para el cuarto conjunto de datos: 
+```{r}
+#| warning: false
+#| message: false
+
+summary(model4)
+autoplot(model4)
+```
+\vfill
+\newpage
+Pruebas:
+```{r}
+#| tbl-cap: "Primeras 6 filas del conjunto swiss"
+#| tbl-label: swiss-data
+#| warning: false
+#| message: false
+
+swiss_tbl <- as_tibble(swiss)
+
+
+kable(
+  head(swiss_tbl, 6),
+  format = "latex",
+  booktabs = TRUE,
+  longtable = TRUE
+)
+```

@@ -1,85 +1,132 @@
-# Adecuación del modelo
+# Adecuación del modelo lineal
 
-Hasta el momento hemos considerado únicamente modelos con una sola variable independiente. Sin embargo, en muchos casos es posible que la variable de interés dependa de múltiples variables independientes. En este caso, el modelo de regresión lineal simple se extiende al modelo de regresión lineal múltiple, en el cual la variable dependiente $Y$ depende linealmente de múltiples variables independientes $X_{1}, X_{2}, \ldots, X_{p}$. En esta sección consideraremos el modelo de regresión lineal múltiple y discutiremos algunas de las condiciones que deben cumplirse para que este modelo sea adecuado. De manera más específica, supondremos que tenemos un modelo de la forma 
+Hasta el momento hemos considerado únicamente modelos lineales de la forma 
 $$
-Y_{0} = b_{0} + b_{1} X_{01} + b_{2} X_{02} + \cdots + b_{p} X_{0p} + \epsilon 
+Y_{0} = b_{0} + b_{1} X_{01} + b_{2} X_{02} + \cdots + b_{p} X_{0p} + \epsilon_{0} 
 $$
-donde $Y_{0}$ es la variable dependiente, $X_{01}, X_{02}, \ldots, X_{0p}$ son las variables independientes, $b_{0}, b_{1}, \ldots, b_{p}$ son los parámetros del modelo y $\epsilon$ es un término de error aleatorio con distribución $\mathcal{N}(0, \sigma^{2})$. Para considerar nuestras muestras de datos, consideraremos la matriz aleatoria 
-$$
-X = \begin{bmatrix}
-X_{11} & X_{12} & \ldots & X_{1p} \\
-X_{21} & X_{22} & \ldots & X_{2p} \\
-\vdots & \vdots & \ddots & \vdots \\
-X_{n1} & X_{n2} & \ldots & X_{np}
-\end{bmatrix}
-$$
-y mantendremos el vector aleatorio 
-$$
-Y = \begin{bmatrix}
-Y_{1} \\
-Y_{2} \\
-\vdots \\
-Y_{n}
-\end{bmatrix}
-$$
-que hemos utilizado anteriormente. Supongamos ahora que tenemos un vector de observaciones independientes
-$$
-x = \begin{bmatrix} 
-x_{11} & x_{12} & \ldots & x_{1p} \\
-x_{21} & x_{22} & \ldots & x_{2p} \\
-\vdots & \vdots & \ddots & \vdots \\
-x_{n1} & x_{n2} & \ldots & x_{np}
-\end{bmatrix}
-$$
-Entonces, podemos definir la matriz de diseño 
-$$
-\Phi = \begin{bmatrix}
-1 & x_{11} & x_{12} & \ldots & x_{1p} \\ 
-1 & x_{21} & x_{22} & \ldots & x_{2p} \\
-\vdots & \vdots & \vdots & \ddots & \vdots \\
-1 & x_{n1} & x_{n2} & \ldots & x_{np}
-\end{bmatrix}
-$$
-y podemos definir las matrices $D^{2} = (\Phi^{T} \Phi)^{-1}$, $A = D^{2} \Phi^{T}$ y $H = \Phi A$. Entonces, el vector de coeficientes de la recta de mejor ajuste por mínimos cuadrados está dado por 
-$$
-\hat{B} = AY \sim \mathcal{N}(b, \sigma^{2} D^{2}) 
-$$
-mientras que el vector de predicciones está dado por 
-$$
-\hat{Y} = HY 
-$$
-Notemos que en este caso el estimador para la varianza del error está dado por 
-$$
-\hat{S}^{2} =\frac{ \|Y - \hat{Y}\|^{2}}{n - (p + 1)} = \sum_{i=1}^{n} \frac{(Y_{i} - \hat{Y}_{i})^{2}}{n - (p + 1)}
-$$
-Ahora dado cualquier vector de observaciones dependientes 
-$$
-y = \begin{bmatrix}
-y_{1} \\
-y_{2} \\
-\vdots \\
-y_{n}
-\end{bmatrix}
-$$
-podemos evaluar los estimadores anteriores en los datos observados para obtener el vector de coeficientes de la recta de mejor ajuste por mínimos cuadrados. En particular, el vector de coeficientes está dado por 
-$$
-\hat{\beta} = \begin{bmatrix}
-\hat{\beta}_{0} \\
-\hat{\beta}_{1} \\
-\vdots \\
-\hat{\beta}_{p} = A y
-\end{bmatrix}
-$$
-mientras que el vector de predicciones está dado por 
-$$
-\hat{y} = \begin{bmatrix} 
-\hat{y}_{1} \\ 
-\hat{y}_{2} \\ 
-\vdots \\
-\hat{y}_{n}
-\end{bmatrix} = H y 
-$$
-Notemos que podemos realizar estos cálculos para cualquier conjunto de datos dados, sin embargo, para que el modelo de regresión lineal múltiple sea adecuado, es necesario que se cumplan ciertas condiciones. En este capítulo discutiremos algunas de estas condiciones y presentaremos algunas herramientas para evaluar la adecuación del modelo. 
+donde $Y_{0}$ es la variable dependiente, $X_{01}, X_{02}, \ldots, X_{0p}$ son las variables independientes, $b_{0}, b_{1}, \ldots, b_{p}$ son los coeficientes del modelo y $\epsilon_{0}$ es un término de error aleatorio con distribución $\mathcal{N}(0, \sigma^{2})$. Una vez que hemos estimado estos parámetros utilizando el método de mínimos cuadrados, podemos utilizar el modelo ajustado, y las bandas de confianza y predicción, para realizar predicciones sobre nuevos valores de las variables independientes. 
+
+Notemos que este proceso se puede aplicar a cualquier conjunto de datos dado, sin embargo para que estas predicciones sean de utilidad, es necesario que el comportamiento de nuestros datos siga una tendencia lineal, ya que en caso contrario las predicciones podrían no ser confiables. Por ejemplo, consideremos el ajuste por el método de mínimos cuadrados para los siguientes conjuntos de datos: 
+```{r}
+#| fig-cap: "Ajuste por mínimos cuadrados para diferentes conjuntos de datos."
+#| fig-width:  12
+#| fig-height: 6
+#| message: false
+
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+library(kableExtra)
+library(ggfortify)
+
+
+set.seed(123)
+
+n <- 500
+x_data1 <- runif(n, min = 0, max = 10)
+epsilon_data1 <- rnorm(n, mean = 0, sd = 50)
+y_data1 <- (x_data1)^3 + epsilon_data1
+
+x_data2 <- runif(n, min = 0, max = 10)
+epsilon_data2 <- rnorm(n, mean = 0, sd = 0.1)
+y_data2 <- sin(x_data2) + epsilon_data2
+
+x_data3 <- runif(n, min = 0, max = 10)
+y_data3 <- runif(n, min = 0, max = 10)
+
+x_data4 <- runif(n, min = 0, max = 10)
+y_data4 <- mapply(function(mu, sigma) rnorm(1, mean = mu, sd = sigma),
+  mu = x_data4,
+  sigma = x_data4
+)
+
+sample_data1_tbl <- tibble(
+  x = x_data1,
+  y = y_data1
+)
+
+sample_data2_tbl <- tibble(
+  x = x_data2,
+  y = y_data2
+)
+
+sample_data3_tbl <- tibble(
+  x = x_data3,
+  y = y_data3
+)
+
+sample_data4_tbl <- tibble(
+  x = x_data4,
+  y = y_data4
+)
+
+sample_data1_plot <- sample_data1_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos cúbicos",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data2_plot <- sample_data2_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos senoidales",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data3_plot <- sample_data3_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos aleatorios",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data4_plot <- sample_data4_tbl |>
+  ggplot(aes(x = x, y = y)) +
+  geom_point(
+    color = c_pal("C red"),
+    size = 1,
+    alpha = 1
+  ) +
+  geom_smooth(method = "lm", se = FALSE, color = c_pal("C blue")) +
+  labs(
+    title = "Datos con varianza creciente",
+    x = "",
+    y = ""
+  ) +
+  theme_krul()
+
+sample_data_plot <- (sample_data1_plot + sample_data2_plot) /
+  (sample_data3_plot + sample_data4_plot)
+
+sample_data_plot
+```
+
+Es bastante claro que en estos casos el ajuste por mínimos cuadrados no es el método adecuado para realizar predicciones confiables. En general, este método solo es efectivo cuando se cumplen ciertas hipótesis que estudiaremos en las siguientes secciones, cuando introduciremos el modelo de regresión lineal desde un punto de vista estadístico.
 
 ## Bondad de ajuste 
 
@@ -161,51 +208,20 @@ Otra condición fundamental para la adecuación del modelo de regresión lineal 
 
 ## Ejemplos 
 
-Consideremos los siguientes conjuntos de datos:
-
+Recordemos que teníamos los siguientes ejemplos de conjuntos de datos:
 ```{r}
-set.seed(123)
+#| fig-cap: "Ajuste por mínimos cuadrados para diferentes conjuntos de datos."
+#| fig-width:  12
+#| fig-height: 6
+#| message: false
 
-n <- 500
-x_data1 <- runif(n, min = 0, max = 10)
-epsilon_data1 <- rnorm(n, mean = 0, sd = 50)
-y_data1 <- (x_data1)^3 + epsilon_data1
-
-x_data2 <- runif(n, min = 0, max = 10)
-epsilon_data2 <- rnorm(n, mean = 0, sd = 0.1)
-y_data2 <- sin(x_data2) + epsilon_data2
-
-x_data3 <- runif(n, min = 0, max = 10)
-y_data3 <- runif(n, min = 0, max = 10)
-
-x_data4 <- runif(n, min = 0, max = 10)
-y_data4 <- mapply(function(mu, sigma) rnorm(1, mean = mu, sd = sigma),
-                  mu = x_data4,
-                  sigma = x_data4)
-
-sample_data1_tbl <- tibble(
-  x = x_data1,
-  y = y_data1
-)
-
-sample_data2_tbl <- tibble(
-  x = x_data2,
-  y = y_data2
-)
-
-sample_data3_tbl <- tibble(
-  x = x_data3,
-  y = y_data3
-)
-
-sample_data4_tbl <- tibble(
-  x = x_data4,
-  y = y_data4
-)
+sample_data_plot
 ```
 Podemos ajustar un modelo de regresión lineal simple a cada uno de estos conjuntos de datos y evaluar la adecuación del modelo utilizando las herramientas discutidas en esta sección. 
 ```{r} 
-library(ggfortify)
+#| warning: false
+#| message: false
+
 model1 <- lm(y ~ x, data = sample_data1_tbl)
 model2 <- lm(y ~ x, data = sample_data2_tbl)
 model3 <- lm(y ~ x, data = sample_data3_tbl)
@@ -217,16 +233,25 @@ autoplot(model1)
 ```
 Para el segundo conjunto de datos:
 ```{r}
+#| warning: false
+#| message: false
+
 summary(model2)
 autoplot(model2)
 ```
 Para el tercer conjunto de datos: 
 ```{r}
+#| warning: false
+#| message: false
+
 summary(model3)
 autoplot(model3)
 ```
 Finalmente, para el cuarto conjunto de datos: 
 ```{r}
+#| warning: false
+#| message: false
+
 summary(model4)
 autoplot(model4)
 ```
@@ -236,17 +261,16 @@ Pruebas:
 ```{r}
 #| tbl-cap: "Primeras 6 filas del conjunto swiss"
 #| tbl-label: swiss-data
-
-library(tidyverse)
+#| warning: false
+#| message: false
 
 swiss_tbl <- as_tibble(swiss)
 
 
-knitr::kable(
+kable(
   head(swiss_tbl, 6),
   format = "latex",
   booktabs = TRUE,
   longtable = TRUE
 )
 ```
-
