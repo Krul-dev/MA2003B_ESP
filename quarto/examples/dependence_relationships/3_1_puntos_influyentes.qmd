@@ -8,7 +8,15 @@ La **distancia de Cook** es una medida utilizada para evaluar la influencia de u
 
 $$D_i = \frac{\sum_{j=1}^{n} \left( \hat{y}_j - \hat{y}_{j(i)} \right)^2}{p \cdot \text{MSE}}$$
 
-Donde: - $\hat{y}_j$ es el valor ajustado de la $j$-ésima observación usando todos los datos. - $\hat{y}_{j(i)}$ es el valor ajustado de la $j$-ésima observación cuando el $i$-ésimo punto de datos es omitido. - $p$ es el número de parámetros del modelo, incluyendo el intercepto. - $\text{MSE}$ es el error cuadrático medio del modelo ajustado:
+Donde:
+
+- $\hat{y}_j$ es el valor ajustado de la $j$-ésima observación usando todos los datos.
+
+- $\hat{y}_{j(i)}$ es el valor ajustado de la $j$-ésima observación cuando el $i$-ésimo punto de datos es omitido.
+
+- $p$ es el número de parámetros del modelo, incluyendo el intercepto.
+
+- $\text{MSE}$ es el error cuadrático medio del modelo ajustado:
 
 $$\text{MSE} = \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{n - p}$$
 
@@ -16,7 +24,11 @@ Alternativamente, la distancia de Cook se puede calcular usando:
 
 $$D_i = \frac{r_i^2}{p \cdot (1 - h_i)} \cdot \frac{h_i}{1 - h_i}$$
 
-Donde: - $r_i$ es el residuo estandarizado para el $i$-ésimo punto de datos. - $h_i$ es el valor de apalancamiento para el $i$-ésimo punto de datos.
+Donde:
+
+- $r_i$ es el residuo estandarizado para el $i$-ésimo punto de datos.
+
+- $h_i$ es el valor de apalancamiento para el $i$-ésimo punto de datos.
 
 ### Cálculo de la Distancia de Cook en R
 

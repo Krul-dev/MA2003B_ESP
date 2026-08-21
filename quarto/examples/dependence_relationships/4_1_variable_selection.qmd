@@ -4,17 +4,57 @@ En este ejemplo utilizaremos el conjunto de datos "mtcars" para explorar los dis
 
 ## 1. Selección Manual
 
-Siempre podemos hacer una selección manual de las variables a considerar, utilizando nuestro conocimiento del contexto. Para este ejemplo seleccionaremos las variables predictoras "wt" y "hp" y la variable "mpg" como variable de respuesta.
+Siempre podemos hacer una selección manual de las variables a considerar, utilizando nuestro conocimiento del contexto.
 
 ### Paso 1. Exploración de los datos
 
+Empezaremos por explorar la base de datos
+
 ```{r}
+library(tidyverse)
+library(GGally)
+library(krulRutils)
+library(car)
+library(lmtest)
+
 data(mtcars)
-head(mtcars)
-summary(mtcars)
-cor(mtcars)
-pairs(mtcars)
+
+mtcars
 ```
+
+Consideramos ahora su matriz de dispersión.
+
+```{r}
+#| message: false
+#| fig-cap: "Matriz de dispersión del conjunto de datos mtcars"
+#| fig-height: 6
+#| fig-width: 12
+
+mtcars_pairs_plot <- mtcars |>
+  ggpairs(
+    diag = list(
+      continuous = wrap(
+        "barDiag",
+        bins = 8,
+        fill = c_pal("C blue"),
+        color = "black",
+        alpha = 0.7
+      )
+    ),
+    lower = list(
+      continuous = wrap(
+        "points",
+        color = c_pal("C red"),
+        size = 1
+      )
+    )
+  ) |>
+  theme_krul_ggpairs()
+
+mtcars_pairs_plot
+```
+
+Basándonos en la información contenida en esta gráfica, elegimos Para este las variables predictoras "wt" y "hp" y la variable "mpg" como variable de respuesta.
 
 ### Paso 2. Ajuste del modelo
 
@@ -23,7 +63,9 @@ model <- lm(mpg ~ wt + hp, data = mtcars)
 summary(model)  #significancia de parámetros y modelo, R^2adj
 ```
 
-### Paso 3. Varificación del modelo
+### Paso 3. Verificación del modelo
+
+Empezamos por las gráficas clásicas para la evaluación de nuestro modelo:
 
 ```{r}
 par(mfrow = c(2, 2))
@@ -31,39 +73,82 @@ plot(model)    #residuales: linealidad , normalidad,
                #homocedasticidad, y puntos influyentes
 ```
 
+Utilizamos la prueba Breusch-Pagan para la homscedasticidad
+
 ```{r}
-library(lmtest)
+
 # Breusch-Pagan test (prueba de homocedasticidad)
 bptest(model)
 ```
 
+Para verificar normalidad, utilizaremos la prueba de normalidad de Shapiro
+
 ```{r}
 # Shapiro-Wilk test (normalidad de los residuales)
 shapiro.test(residuals(model))
+```
 
-library(car)
-vif(model)  #Variance Inflation Factor,si es >10 hay multicolinealidad)
+Para verificar independencia, calcularemos el Factor de Inflación de la Varianza
+
+```{r}
+vif(model)
 ```
 
 ## 2.Usando forward selection
 
 ### Paso 1. Exploración de los datos
 
+Nuevamente, exploramos la base de datos
+
 ```{r}
+library(tidyverse)
+library(GGally)
+library(krulRutils)
+library(car)
+library(lmtest)
+
 data(mtcars)
-head(mtcars)
-summary(mtcars)
-cor(mtcars)
-pairs(mtcars)
+
+mtcars
+```
+
+Consideramos ahora su matriz de dispersión.
+
+```{r}
+#| message: false
+#| fig-cap: "Matriz de dispersión del conjunto de datos mtcars"
+#| fig-height: 6
+#| fig-width: 12
+
+mtcars_pairs_plot <- mtcars |>
+  ggpairs(
+    diag = list(
+      continuous = wrap(
+        "barDiag",
+        bins = 8,
+        fill = c_pal("C blue"),
+        color = "black",
+        alpha = 0.7
+      )
+    ),
+    lower = list(
+      continuous = wrap(
+        "points",
+        color = c_pal("C red"),
+        size = 1
+      )
+    )
+  ) |>
+  theme_krul_ggpairs()
+
+mtcars_pairs_plot
 ```
 
 ### Paso 2. Ajuste del modelo
 
 #### Usando AIC (Akaike Information Criterion)
 
-El criterio AIC (del inglés Akaike Information Criterion) es una medida que se usa para comparar modelos estadísticos y elegir el que logra el mejor equilibrio entre ajuste y complejidad. Se define como $$
-AIC=2k−2\ln(L)
-$$ donde $k$ es el número de parámetros estimados y $L$ es el valor máximo de la verosimilitud del modelo.
+El criterio AIC (del inglés Akaike Information Criterion) es una medida que se usa para comparar modelos estadísticos y elegir el que logra el mejor equilibrio entre ajuste y complejidad. Se define como $$AIC=2k−2\ln(L)$$ donde $k$ es el número de parámetros estimados y $L$ es el valor máximo de la verosimilitud del modelo.
 
 ```{r}
 #Modelo nulo (ningún predictor)
@@ -88,9 +173,7 @@ summary(modelo_forward_AIC)
 
 #### Usando BIC (Bayesian Info Criterion)
 
-El BIC (Bayesian Information Criterion) es otro método de selección de modelos, muy parecido al AIC, pero con una penalización más fuerte por el número de parámetros. Está dado por: $$
-\mbox{BIC}=k\ln(n)−2\ln(L)
-$$ donde $k$ es el número de parámetros estimados, $L$ es el valor máximo de la verosimilitud del modelo y $n$ es el número de observaciones.
+El BIC (Bayesian Information Criterion) es otro método de selección de modelos, muy parecido al AIC, pero con una penalización más fuerte por el número de parámetros. Está dado por: $$\mbox{BIC}=k\ln(n)−2\ln(L)$$ donde $k$ es el número de parámetros estimados, $L$ es el valor máximo de la verosimilitud del modelo y $n$ es el número de observaciones.
 
 ##### Aplicar selección hacia adelante usando BIC
 
@@ -113,12 +196,50 @@ summary(modelo_forward_BIC)
 
 ### Paso 1. Exploración de los datos
 
+Exploramos nuevamente la base de datos
+
 ```{r}
+library(tidyverse)
+library(GGally)
+library(krulRutils)
+library(car)
+library(lmtest)
+
 data(mtcars)
-head(mtcars)
-summary(mtcars)
-cor(mtcars)
-pairs(mtcars)
+
+mtcars
+```
+
+Consideramos ahora su matriz de dispersión.
+
+```{r}
+#| message: false
+#| fig-cap: "Matriz de dispersión del conjunto de datos mtcars"
+#| fig-height: 6
+#| fig-width: 12
+
+mtcars_pairs_plot <- mtcars |>
+  ggpairs(
+    diag = list(
+      continuous = wrap(
+        "barDiag",
+        bins = 8,
+        fill = c_pal("C blue"),
+        color = "black",
+        alpha = 0.7
+      )
+    ),
+    lower = list(
+      continuous = wrap(
+        "points",
+        color = c_pal("C red"),
+        size = 1
+      )
+    )
+  ) |>
+  theme_krul_ggpairs()
+
+mtcars_pairs_plot
 ```
 
 ### Paso 2. Ajuste del modelo
