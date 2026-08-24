@@ -487,13 +487,13 @@ delta_canonical <- function(Z1, Z2, mu, pi) {
 Z1_decision_grid <- seq(
   Z1_limits[1],
   Z1_limits[2],
-  length.out = 400
+  length.out = 1000
 )
 
 Z2_decision_grid <- seq(
   Z2_limits[1],
   Z2_limits[2],
-  length.out = 400
+  length.out = 1000
 )
 
 decision_grid_Z <- expand_grid(
@@ -727,13 +727,13 @@ delta_original <- function(X1, X2, mu, pi) {
 X1_grid <- seq(
   min(sample_df$X1) - 1,
   max(sample_df$X1) + 1,
-  length.out = 400
+  length.out = 1000
 )
 
 X2_grid <- seq(
   min(sample_df$X2) - 1,
   max(sample_df$X2) + 1,
-  length.out = 400
+  length.out = 1000
 )
 
 decision_grid <- expand_grid(
