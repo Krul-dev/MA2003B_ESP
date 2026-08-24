@@ -1,0 +1,510 @@
+# Visualizando el modelo discriminante Gaussiano
+
+Consideraremos varios ejemplos que nos ayudarán a visualizar el proceso del *análisis discriminante lineal* en el marco teórico del modelo discriminante Gaussiano.
+
+## Dos grupos, dos variables
+
+Consideraremos ahora el caso en el que tenemos dos grupos y dos variables. Mantendremos los mismos *priors* del ejemplo anterior: $$\pi_{1} = \frac{1}{3}
+\qquad
+\pi_{2} = \frac{2}{3}.$$ Elegiremos las medias $$\mu_{1}
+=
+\begin{bmatrix}
+-2\\
+-2
+\end{bmatrix}
+\qquad
+\mu_{2}
+=
+\begin{bmatrix}
+1\\
+1
+\end{bmatrix}.$$ Con esta elección, la media total está dada por $$\mu
+=
+\pi_{1}\mu_{1}+\pi_{2}\mu_{2}
+=
+\frac{1}{3}
+\begin{bmatrix}
+-2\\
+-2
+\end{bmatrix}
++
+\frac{2}{3}
+\begin{bmatrix}
+1\\
+1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0\\
+0
+\end{bmatrix}.$$
+
+Tomaremos como matriz de varianzas y covarianzas común $$\Sigma
+=
+\begin{bmatrix}
+2 & 1\\
+1 & 2
+\end{bmatrix}.$$ En particular, las dos variables no son independientes, ya que los términos fuera de la diagonal son distintos de cero.
+
+La matriz $\Sigma$ tiene los vectores propios $$v_{1}
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1\\
+1
+\end{bmatrix},
+\qquad
+v_{2}
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1\\
+-1
+\end{bmatrix},$$ asociados respectivamente a los valores propios $$\lambda_{1}=3,
+\qquad
+\lambda_{2}=1.$$ Por lo tanto, podemos escribir $$P
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1 & 1\\
+1 & -1
+\end{bmatrix}
+\qquad\text{y}\qquad
+D
+=
+\begin{bmatrix}
+3 & 0\\
+0 & 1
+\end{bmatrix},$$ de manera que $$P\Sigma P^{T}=D.$$
+
+Definimos ahora el cambio de variables $$Z=AX,$$ donde $$A=D^{-1/2}P
+=
+\begin{bmatrix}
+\frac{1}{\sqrt{6}} & \frac{1}{\sqrt{6}}\\
+\frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}
+\end{bmatrix}.$$ La matriz de varianzas y covarianzas en las nuevas coordenadas está dada por $$\Sigma_{z}
+=
+A\Sigma A^{T}
+=
+I.$$ Es decir, en las nuevas coordenadas las variables tienen varianza uno y covarianza cero.
+
+Las medias de los grupos se transforman de acuerdo con $$\widetilde{\mu}_{1}
+=
+A\mu_{1}
+=
+\begin{bmatrix}
+-\frac{4}{\sqrt{6}}\\
+0
+\end{bmatrix}$$ y $$\widetilde{\mu}_{2}
+=
+A\mu_{2}
+=
+\begin{bmatrix}
+\frac{2}{\sqrt{6}}\\
+0
+\end{bmatrix}.$$ Observamos que, después del cambio de variables, las dos medias se encuentran sobre el primer eje coordenado. Por lo tanto, toda la separación entre los grupos ocurre en la dirección de la primera variable.
+
+Como $\mu=0$, la matriz de dispersión entre grupos está dada por $$S_{G}
+=
+\sum_{g=1}^{2}
+\pi_{g}(\mu_{g}-\mu)(\mu_{g}-\mu)^{T}
+=
+\frac{1}{3}\mu_{1}\mu_{1}^{T}
++
+\frac{2}{3}\mu_{2}\mu_{2}^{T}.$$ De esta manera, $$S_{G}
+=
+\frac{1}{3}
+\begin{bmatrix}
+4 & 4\\
+4 & 4
+\end{bmatrix}
++
+\frac{2}{3}
+\begin{bmatrix}
+1 & 1\\
+1 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+2 & 2\\
+2 & 2
+\end{bmatrix}.$$
+
+En las nuevas coordenadas, la matriz de dispersión entre grupos está dada por $$\widetilde{S}_{G}
+=
+AS_{G}A^{T}
+=
+\begin{bmatrix}
+\frac{4}{3} & 0\\
+0 & 0
+\end{bmatrix}.$$ Por lo tanto, el cambio de variables nos permite obtener simultáneamente $$\Sigma_{z}
+=
+\begin{bmatrix}
+1 & 0\\
+0 & 1
+\end{bmatrix}
+\qquad\text{y}\qquad
+\widetilde{S}_{G}
+=
+\begin{bmatrix}
+\frac{4}{3} & 0\\
+0 & 0
+\end{bmatrix}.$$ Esto muestra que, en las nuevas coordenadas, toda la información que permite distinguir entre los dos grupos se encuentra en la primera variable. La segunda variable presenta variación dentro de los grupos, pero no contribuye a separar sus medias.
+
+El cambio de variables puede escribirse explícitamente como $$Z_{1}
+=
+\frac{X_{1}+X_{2}}{\sqrt{6}},
+\qquad
+Z_{2}
+=
+\frac{X_{1}-X_{2}}{\sqrt{2}}.$$
+
+Generaremos ahora una muestra con 100 elementos del primer grupo y 200 elemento del segundo y aplicaremos los cambios de coordenadas correspondientes. En las coordenadas originales, tenemos:
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+# Load packages
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+
+# Parameters
+mu1 <- c(-2, -2)
+mu2 <- c(1, 1)
+
+Sigma <- matrix(
+  c(2, 1,
+    1, 2),
+  nrow = 2,
+  byrow = TRUE
+)
+
+pi1 <- 1/3
+pi2 <- 2/3
+
+# Change of variables
+A <- matrix(
+  c(1/sqrt(6),  1/sqrt(6),
+    1/sqrt(2), -1/sqrt(2)),
+  nrow = 2,
+  byrow = TRUE
+)
+
+# Transformed parameters
+mu1_Z <- as.vector(A %*% mu1)
+mu2_Z <- as.vector(A %*% mu2)
+Sigma_Z <- A %*% Sigma %*% t(A)
+
+# Simulated samples
+set.seed(123)
+
+n1 <- 100
+n2 <- 200
+
+X_group1 <- MASS::mvrnorm(n1, mu = mu1, Sigma = Sigma)
+X_group2 <- MASS::mvrnorm(n2, mu = mu2, Sigma = Sigma)
+
+sample_df <- bind_rows(
+  as_tibble(X_group1) %>% mutate(Grupo = "Grupo 1"),
+  as_tibble(X_group2) %>% mutate(Grupo = "Grupo 2")
+) %>%
+  rename(X1 = V1, X2 = V2) %>%
+  mutate(Grupo = factor(Grupo, levels = c("Grupo 1", "Grupo 2")))
+
+# Transform observations
+Z <- t(A %*% t(as.matrix(sample_df[, c("X1", "X2")])))
+
+sample_Z_df <- sample_df %>%
+  select(Grupo) %>%
+  bind_cols(
+    tibble(
+      Z1 = Z[, 1],
+      Z2 = Z[, 2]
+    )
+  )
+
+# Theoretical marginal densities in the transformed coordinates
+Z1_grid <- seq(-5, 4, length.out = 500)
+Z2_grid <- seq(-4, 4, length.out = 500)
+
+density_Z1_df <- bind_rows(
+  tibble(
+    Z1 = Z1_grid,
+    Densidad = pi1 * dnorm(Z1_grid, mean = mu1_Z[1], sd = 1),
+    Grupo = "Grupo 1"
+  ),
+  tibble(
+    Z1 = Z1_grid,
+    Densidad = pi2 * dnorm(Z1_grid, mean = mu2_Z[1], sd = 1),
+    Grupo = "Grupo 2"
+  )
+) %>%
+  mutate(Grupo = factor(Grupo, levels = c("Grupo 1", "Grupo 2")))
+
+density_Z2_df <- bind_rows(
+  tibble(
+    Z2 = Z2_grid,
+    Densidad = pi1 * dnorm(Z2_grid, mean = mu1_Z[2], sd = 1),
+    Grupo = "Grupo 1"
+  ),
+  tibble(
+    Z2 = Z2_grid,
+    Densidad = pi2 * dnorm(Z2_grid, mean = mu2_Z[2], sd = 1),
+    Grupo = "Grupo 2"
+  )
+) %>%
+  mutate(Grupo = factor(Grupo, levels = c("Grupo 1", "Grupo 2")))
+
+# Common limits. These make the projections line up with the scatter plot.
+Z1_limits <- range(c(sample_Z_df$Z1, Z1_grid))
+Z2_limits <- range(c(sample_Z_df$Z2, Z2_grid))
+
+# Decision boundary
+Z1_star <- (
+  0.5 * (mu2_Z[1]^2 - mu1_Z[1]^2) - log(pi2 / pi1)
+) / (mu2_Z[1] - mu1_Z[1])
+
+# Original coordinates
+p_original <- ggplot(
+  sample_df,
+  aes(x = X1, y = X2, color = Grupo)
+) +
+  geom_point(alpha = 0.9) +
+  geom_point(
+    data = tibble(
+      X1 = c(mu1[1], mu2[1]),
+      X2 = c(mu1[2], mu2[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2"),
+        levels = c("Grupo 1", "Grupo 2")
+      )
+    ),
+    aes(x = X1, y = X2, color = Grupo),
+    size = 4
+  ) +
+  c_scale_color("C blue", "C green") +
+  coord_equal() +
+  labs(
+    title = "Muestras en las coordenadas originales",
+    x = expression(X[1]),
+    y = expression(X[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+p_original
+```
+
+Mientras que en las coordenadas transformadas, obtenemos la siguiente figura:
+
+```{r}
+#| fig-width: 14
+#| fig-height: 12
+
+# Samples in the transformed coordinates
+p_samples <- ggplot(sample_Z_df, aes(x = Z1, y = Z2, color = Grupo)) +
+  geom_point(alpha = 0.9) +
+  geom_point(
+    data = tibble(
+      Z1 = c(mu1_Z[1], mu2_Z[1]),
+      Z2 = c(mu1_Z[2], mu2_Z[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2"),
+        levels = c("Grupo 1", "Grupo 2")
+      )
+    ),
+    size = 4
+  ) +
+  c_scale_color("C blue", "C green") +
+  coord_cartesian(
+    xlim = Z1_limits,
+    ylim = Z2_limits
+  ) +
+  geom_vline(
+    xintercept = Z1_star,
+    color = c_pal("C red"),
+    linewidth = 1
+  ) +
+  labs(
+    title = "Muestras en las coordenadas canónicas",
+    x = expression(Z[1]),
+    y = expression(Z[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+# Histogram of Z2.
+# Z2 remains on the vertical axis so that it aligns with the sample plot.
+p_hist_Z2 <- ggplot(sample_Z_df, aes(y = Z2, fill = Grupo)) +
+  geom_histogram(
+    aes(x = after_stat(density)),
+    position = "identity",
+    color = "black",
+    alpha = 0.4,
+    bins = 30,
+    orientation = "y"
+  ) +
+  c_scale_fill("C blue", "C green") +
+  coord_cartesian(ylim = Z2_limits) +
+  labs(
+    title = expression("Histograma en " * Z[2]),
+    x = "Densidad",
+    y = expression(Z[2]),
+    fill = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Histogram of Z1.
+# Z1 remains on the horizontal axis so that it aligns with the sample plot.
+p_hist_Z1 <- ggplot(sample_Z_df, aes(x = Z1, fill = Grupo)) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    position = "identity",
+    color = "black",
+    alpha = 0.4,
+    bins = 30
+  ) +
+  c_scale_fill("C blue", "C green") +
+  coord_cartesian(xlim = Z1_limits) +
+  geom_vline(
+    xintercept = Z1_star,
+    color = c_pal("C red"),
+    linewidth = 1
+  ) +
+  labs(
+    title = expression("Histograma en " * Z[1]),
+    x = expression(Z[1]),
+    y = "Densidad",
+    fill = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Weighted theoretical densities for Z1.
+p_density_Z1 <- ggplot(
+  density_Z1_df,
+  aes(x = Z1, y = Densidad, color = Grupo)
+) +
+  geom_area(
+    aes(fill = Grupo),
+    alpha = 0.25,
+    position = "identity"
+  ) +
+  geom_line(linewidth = 1) +
+  c_scale_fill("C blue", "C green") +
+  c_scale_color("C blue", "C green") +
+  coord_cartesian(xlim = Z1_limits) +
+  labs(
+    title = expression("Densidad en " * Z[1]),
+    x = expression(Z[1]),
+    y = "Densidad ponderada",
+    fill = "Grupos",
+    color = "Grupos"
+  ) +
+  geom_vline(
+    xintercept = Z1_star,
+    color = c_pal("C red"),
+    linewidth = 1
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Weighted theoretical densities for Z2.
+# They are also rotated: Z2 is the vertical coordinate.
+p_density_Z2 <- ggplot(
+  density_Z2_df,
+  aes(x = Densidad, y = Z2, color = Grupo)
+) +
+  geom_area(
+    aes(fill = Grupo),
+    alpha = 0.25,
+    position = "identity",
+    orientation = "y"
+  ) +
+  geom_line(linewidth = 1, orientation = "y") +
+  c_scale_fill("C blue", "C green") +
+  c_scale_color("C blue", "C green") +
+  coord_cartesian(ylim = Z2_limits) +
+  labs(
+    title = expression("Densidad en " * Z[2]),
+    x = "Densidad ponderada",
+    y = expression(Z[2]),
+    fill = "Grupos",
+    color = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Layout:
+#
+# Muestras             Histograma Z2       Densidades Z2
+# Histograma Z1
+# Densidades Z1
+#
+# The Z2 panels are rotated so that Z2 is vertical throughout the first row.
+design <- "
+ABC
+D##
+E##
+"
+
+p_samples +
+  p_hist_Z2 +
+  p_density_Z2 +
+  p_hist_Z1 +
+  p_density_Z1 +
+  plot_layout(
+    design = design,
+    widths = c(1.6, 1, 1),
+    heights = c(1.6, 1, 1),
+    guides = "collect"
+  ) &
+  theme(legend.position = "bottom")
+
+```
+
+Finalmente, podemos utilizar la frontera de decisión que calculamos en las coordenadas discriminantes canónicas para encontrar la frontera de decisión en nuestras coordenadas originales.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+# Original coordinates with decision boundary
+p_original_decision <- ggplot(
+  sample_df,
+  aes(x = X1, y = X2, color = Grupo)
+) +
+  geom_point(alpha = 0.9) +
+  geom_point(
+    data = tibble(
+      X1 = c(mu1[1], mu2[1]),
+      X2 = c(mu1[2], mu2[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2"),
+        levels = c("Grupo 1", "Grupo 2")
+      )
+    ),
+    aes(x = X1, y = X2, color = Grupo),
+    size = 4
+  ) +
+  geom_abline(
+    intercept = sqrt(6) * Z1_star,
+    slope = -1,
+    color = c_pal("C red"),
+    linewidth = 1
+  ) +
+  c_scale_color("C blue", "C green") +
+  coord_equal() +
+  labs(
+    title = "Muestras en las coordenadas originales",
+    x = expression(X[1]),
+    y = expression(X[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+p_original_decision
+```

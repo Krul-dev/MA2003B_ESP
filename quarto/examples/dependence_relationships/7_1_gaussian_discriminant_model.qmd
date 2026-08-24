@@ -4,19 +4,18 @@ Consideraremos varios ejemplos que nos ayudarán a visualizar el proceso del *an
 
 ## Dos grupos, una variable
 
-Emezaremos por considerar el caso en el que tenemos dos grupos con medias $$
-\mu_{1} = -2 \qquad \mu_{2} = 2
-$$ y varianza $\sigma^{2} = 1$. Supondremos que los priors están dados por $$
-\pi_{1} = \frac{1}{3} \qquad \pi_{2} = \frac{2}{3}
-$$ En este caso, las funciones discriminantes están dadas por: $$
-\delta_{1}(x) = -2x -\frac{4}{2} + \log(\frac{1}{3})
-$$ y $$
-\delta_{2}(x) = 2x -\frac{4}{2} + \log(\frac{2}{3})
-$$ La diferencia entre estas funciones está dada por $$
-\Delta_{21}(x) = \delta_{2}(x)-\delta_{1}(x) = 4x +\log(2)
-$$ Se sigue que la frontera de decisión está dada por $$
-x = - \frac{\log(2)}{4}
-$$
+Emezaremos por considerar el caso en el que tenemos dos grupos con medias
+$$\mu_{1} = -2 \qquad \mu_{2} = 2$$
+y varianza $\sigma^{2} = 1$. Supondremos que los priors están dados por
+$$\pi_{1} = \frac{1}{3} \qquad \pi_{2} = \frac{2}{3}$$
+En este caso, las funciones discriminantes están dadas por:
+$$\delta_{1}(x) = -2x -\frac{4}{2} + \log(\frac{1}{3})$$
+y
+$$\delta_{2}(x) = 2x -\frac{4}{2} + \log(\frac{2}{3})$$
+La diferencia entre estas funciones está dada por
+$$\Delta_{21}(x) = \delta_{2}(x)-\delta_{1}(x) = 4x +\log(2)$$
+Se sigue que la frontera de decisión está dada por
+$$x = - \frac{\log(2)}{4}$$
 
 ```{r}
 #| fig-width: 10
@@ -62,7 +61,8 @@ p_discriminant <- ggplot(disc_df, aes(x = x, y = Discriminante, color = Grupo)) 
     y     = "Discriminante",
     color = "Grupos"
   ) +
-  geom_vline(xintercept = x_star, linetype = "dashed", color = "black", linewidth = 1) +
+  geom_vline(xintercept = x_star, linetype = "dashed", color = c_pal("C red"), linewidth = 1) +
+  coord_cartesian(xlim = c(-6,6)) +
   theme_krul()
 
 dens_df <- tibble(
@@ -86,10 +86,11 @@ p_density <- ggplot(dens_df, aes(x = x, y = density, fill = group)) +
     title = "Funciones de densidad",
     x     = "x",
     y     = "Densidad",
-    fill  = "Grupo",
-    color = "Grupo"
+    fill  = "Grupos",
+    color = "Grupos"
   ) +
-  geom_vline(xintercept = x_star, linetype = "dashed", color = "black", linewidth = 1) +
+  geom_vline(xintercept = x_star, linetype = "dashed", color = c_pal("C red"), linewidth = 1) +
+  coord_cartesian(xlim = c(-6,6)) +
   theme_krul()
 
 set.seed(123)  # for reproducibility
@@ -117,14 +118,13 @@ p_hist <- ggplot(sample_df, aes(x = x, fill = group)) +
     title = "Muestras de los dos grupos",
     x     = "x",
     y     = "",
-    fill  = "Grupo"
+    fill  = "Grupos"
   ) +
-  geom_vline(xintercept = x_star, linetype = "dashed", color = "black", linewidth = 1) +
+  geom_vline(xintercept = x_star, linetype = "dashed", color = c_pal("C red"), linewidth = 1) +
+  coord_cartesian(xlim = c(-6,6)) +
   theme_krul()
 
 p_comb <- p_density / p_discriminant/p_hist 
 
 p_comb
-
-
 ```

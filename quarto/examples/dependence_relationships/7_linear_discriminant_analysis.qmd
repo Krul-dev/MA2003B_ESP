@@ -26,11 +26,11 @@ table(iris$Species)
 
 El dataset se compone de 150 observaciones de flores de la planta iris.
 
--   Existen tres tipos de clases de flores iris: virginica, setosa y versicolor. Hay 50 observaciones de cada uno de los tipos de flores.
--   Las variables o atributos que se miden de cada flor son:
-    1.  El tipo de flor como variable categorica.
-    2.  El largo y el ancho del pétalo en cm como variables numéricas.
-    3.  El largo y el ancho del sépalo en cm como variables numéricas.
+- Existen tres tipos de clases de flores iris: virginica, setosa y versicolor. Hay 50 observaciones de cada uno de los tipos de flores.
+- Las variables o atributos que se miden de cada flor son:
+  1.  El tipo de flor como variable categorica.
+  2.  El largo y el ancho del pétalo en cm como variables numéricas.
+  3.  El largo y el ancho del sépalo en cm como variables numéricas.
 
 *Idea clave*: construir un modelo de análisis discriminante lineal para clasificar la clase de flor de iris a la que pertenecen cada una de las observaciones utilizando las 4 variables numéricas como variables predictoras:
 
@@ -156,8 +156,8 @@ table(pred=predicted$class, true=iris$Species)
 
 # Validación de los supuestos
 
--   Las variables predictoras tienen distribución normal
--   Las matrices de varianzas y covarianzas son iguales en las diferentes clases
+- Las variables predictoras tienen distribución normal
+- Las matrices de varianzas y covarianzas son iguales en las diferentes clases
 
 ```{r}
 # Gráficos de densidad
