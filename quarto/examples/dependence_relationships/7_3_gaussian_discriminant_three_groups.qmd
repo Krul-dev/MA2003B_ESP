@@ -1,0 +1,816 @@
+# Visualizando el modelo discriminante Gaussiano
+
+Consideraremos ahora un ejemplo con tres grupos y dos variables, siguiendo la misma estructura utilizada en el caso de dos grupos.
+
+## Tres grupos, dos variables
+
+Tomaremos las probabilidades a priori
+
+$$\pi_{1}=\frac{1}{6},
+\qquad
+\pi_{2}=\frac{2}{6},
+\qquad
+\pi_{3}=\frac{3}{6}.$$
+
+Elegiremos las medias
+
+$$\mu_{1}
+=
+\begin{bmatrix}
+-2\\
+-1
+\end{bmatrix},
+\qquad
+\mu_{2}
+=
+\begin{bmatrix}
+1\\
+-1
+\end{bmatrix},
+\qquad
+\mu_{3}
+=
+\begin{bmatrix}
+0\\
+1
+\end{bmatrix}.$$
+
+Con esta elección, la media total es
+
+$$\mu
+=
+\pi_{1}\mu_{1}
++
+\pi_{2}\mu_{2}
++
+\pi_{3}\mu_{3},$$
+
+por lo que
+
+$$\mu
+=
+\frac{1}{6}
+\begin{bmatrix}
+-2\\
+-1
+\end{bmatrix}
++
+\frac{2}{6}
+\begin{bmatrix}
+1\\
+-1
+\end{bmatrix}
++
+\frac{3}{6}
+\begin{bmatrix}
+0\\
+1
+\end{bmatrix}
+=
+\begin{bmatrix}
+0\\
+0
+\end{bmatrix}.$$
+
+Tomaremos nuevamente como matriz de varianzas y covarianzas común
+
+$$\Sigma
+=
+\begin{bmatrix}
+2 & 1\\
+1 & 2
+\end{bmatrix}.$$
+
+Como en el ejemplo anterior, las variables originales están correlacionadas, ya que los términos fuera de la diagonal de $\Sigma$ son distintos de cero.
+
+La matriz de dispersión entre grupos está dada por
+
+$$S_{G}
+=
+\sum_{g=1}^{3}
+\pi_{g}
+(\mu_{g}-\mu)
+(\mu_{g}-\mu)^{T}.$$
+
+Como $\mu=0$, tenemos
+
+$$S_{G}
+=
+\frac{1}{6}\mu_{1}\mu_{1}^{T}
++
+\frac{2}{6}\mu_{2}\mu_{2}^{T}
++
+\frac{3}{6}\mu_{3}\mu_{3}^{T}.$$
+
+De esta manera,
+
+$$S_{G}
+=
+\frac{1}{6}
+\begin{bmatrix}
+4 & 2\\
+2 & 1
+\end{bmatrix}
++
+\frac{2}{6}
+\begin{bmatrix}
+1 & -1\\
+-1 & 1
+\end{bmatrix}
++
+\frac{3}{6}
+\begin{bmatrix}
+0 & 0\\
+0 & 1
+\end{bmatrix}
+=
+\begin{bmatrix}
+1 & 0\\
+0 & 1
+\end{bmatrix}.$$
+
+En este caso, a diferencia del ejemplo con dos grupos, la matriz $S_G$ tiene rango dos. Esto significa que existen dos direcciones independientes en las que las medias de los grupos presentan variación.
+
+Para construir las coordenadas canónicas, utilizaremos nuevamente los vectores propios de $\Sigma$. Tomaremos primero el vector propio asociado al valor propio más pequeño,
+
+$$v_{1}
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1\\
+-1
+\end{bmatrix},$$
+
+asociado a
+
+$$\lambda_{1}=1,$$
+
+y después
+
+$$v_{2}
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1\\
+1
+\end{bmatrix},$$
+
+asociado a
+
+$$\lambda_{2}=3.$$
+
+Por lo tanto, podemos escribir
+
+$$P
+=
+\frac{1}{\sqrt{2}}
+\begin{bmatrix}
+1 & -1\\
+1 & 1
+\end{bmatrix},
+\qquad
+D
+=
+\begin{bmatrix}
+1 & 0\\
+0 & 3
+\end{bmatrix},$$
+
+de manera que
+
+$$P\Sigma P^{T}=D.$$
+
+Definimos ahora el cambio de variables
+
+$$Z=AX,$$
+
+donde
+
+$$A
+=
+D^{-1/2}P
+=
+\begin{bmatrix}
+\frac{1}{\sqrt{2}} & -\frac{1}{\sqrt{2}}\\
+\frac{1}{\sqrt{6}} & \frac{1}{\sqrt{6}}
+\end{bmatrix}.$$
+
+La matriz de varianzas y covarianzas en las nuevas coordenadas es
+
+$$\Sigma_{Z}
+=
+A\Sigma A^{T}
+=
+I.$$
+
+Por lo tanto, en las coordenadas canónicas las dos variables tienen varianza uno y covarianza cero.
+
+Las medias de los tres grupos se transforman de acuerdo con
+
+$$\widetilde{\mu}_{1}
+=
+A\mu_{1}
+=
+\begin{bmatrix}
+-\frac{1}{\sqrt{2}}\\
+-\frac{\sqrt{6}}{2}
+\end{bmatrix},$$
+
+$$\widetilde{\mu}_{2}
+=
+A\mu_{2}
+=
+\begin{bmatrix}
+\sqrt{2}\\
+0
+\end{bmatrix},$$
+
+y
+
+$$\widetilde{\mu}_{3}
+=
+A\mu_{3}
+=
+\begin{bmatrix}
+-\frac{1}{\sqrt{2}}\\
+\frac{1}{\sqrt{6}}
+\end{bmatrix}.$$
+
+La matriz de dispersión entre grupos en las nuevas coordenadas está dada por
+
+$$\widetilde{S}_{G}
+=
+AS_{G}A^{T}
+=
+\begin{bmatrix}
+1 & 0\\
+0 & \frac{1}{3}
+\end{bmatrix}.$$
+
+Por lo tanto, el cambio de coordenadas nos permite obtener simultáneamente
+
+$$\Sigma_{Z}
+=
+\begin{bmatrix}
+1 & 0\\
+0 & 1
+\end{bmatrix}
+\qquad\text{y}\qquad
+\widetilde{S}_{G}
+=
+\begin{bmatrix}
+1 & 0\\
+0 & \frac{1}{3}
+\end{bmatrix}.$$
+
+En este caso, las dos coordenadas canónicas contienen información para distinguir entre los grupos. La primera coordenada presenta una dispersión entre grupos mayor que la segunda, pero ninguna de las dos puede eliminarse sin perder información discriminante.
+
+Esto concuerda con el hecho de que el número máximo de variables discriminantes canónicas es
+
+$$\min(p,G-1)
+=
+\min(2,2)
+=
+2.$$
+
+El cambio de variables puede escribirse explícitamente como
+
+$$Z_{1}
+=
+\frac{X_{1}-X_{2}}{\sqrt{2}},
+\qquad
+Z_{2}
+=
+\frac{X_{1}+X_{2}}{\sqrt{6}}.$$
+
+Generaremos ahora una muestra con 100 observaciones del primer grupo, 200 del segundo y 300 del tercero.
+
+```{r}
+#| fig-width: 8
+#| fig-height: 8
+
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+
+# Parameters
+mu1 <- c(-2, -1)
+mu2 <- c(1, -1)
+mu3 <- c(0, 1)
+
+Sigma <- matrix(
+  c(2, 1,
+    1, 2),
+  nrow = 2,
+  byrow = TRUE
+)
+
+pi1 <- 1/6
+pi2 <- 2/6
+pi3 <- 3/6
+
+# Change of variables
+A <- matrix(
+  c(
+     1/sqrt(2), -1/sqrt(2),
+     1/sqrt(6),  1/sqrt(6)
+  ),
+  nrow = 2,
+  byrow = TRUE
+)
+
+# Transformed parameters
+mu1_Z <- as.vector(A %*% mu1)
+mu2_Z <- as.vector(A %*% mu2)
+mu3_Z <- as.vector(A %*% mu3)
+
+Sigma_Z <- A %*% Sigma %*% t(A)
+
+# Simulated samples
+set.seed(123)
+
+n1 <- 100
+n2 <- 200
+n3 <- 300
+
+X_group1 <- MASS::mvrnorm(n1, mu = mu1, Sigma = Sigma)
+X_group2 <- MASS::mvrnorm(n2, mu = mu2, Sigma = Sigma)
+X_group3 <- MASS::mvrnorm(n3, mu = mu3, Sigma = Sigma)
+
+sample_df <- bind_rows(
+  as_tibble(X_group1) %>% mutate(Grupo = "Grupo 1"),
+  as_tibble(X_group2) %>% mutate(Grupo = "Grupo 2"),
+  as_tibble(X_group3) %>% mutate(Grupo = "Grupo 3")
+) %>%
+  rename(X1 = V1, X2 = V2) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+    )
+  )
+
+# Transform observations
+Z <- t(A %*% t(as.matrix(sample_df[, c("X1", "X2")])))
+
+sample_Z_df <- sample_df %>%
+  dplyr::select(Grupo) %>%
+  bind_cols(
+    tibble(
+      Z1 = Z[, 1],
+      Z2 = Z[, 2]
+    )
+  )
+
+# Original coordinates
+p_original <- ggplot(
+  sample_df,
+  aes(x = X1, y = X2, color = Grupo)
+) +
+  geom_point(alpha = 0.9) +
+  geom_point(
+    data = tibble(
+      X1 = c(mu1[1], mu2[1], mu3[1]),
+      X2 = c(mu1[2], mu2[2], mu3[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2", "Grupo 3"),
+        levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+      )
+    ),
+    aes(x = X1, y = X2, color = Grupo),
+    size = 4
+  ) +
+  c_scale_color("C blue", "C green", "C red") +
+  coord_equal() +
+  labs(
+    title = "Muestras en las coordenadas originales",
+    x = expression(X[1]),
+    y = expression(X[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+p_original
+```
+
+En las coordenadas canónicas, las funciones discriminantes toman una forma especialmente simple debido a que $\Sigma_Z=I$:
+
+$$\delta_g(Z)
+=
+Z^{T}\widetilde{\mu}_g
+-
+\frac{1}{2}
+\widetilde{\mu}_g^{T}\widetilde{\mu}_g
++
+\log(\pi_g).$$
+
+Para encontrar las fronteras entre los grupos, igualamos las funciones discriminantes por pares:
+
+$$\delta_1(Z)=\delta_2(Z),
+\qquad
+\delta_1(Z)=\delta_3(Z),
+\qquad
+\delta_2(Z)=\delta_3(Z).$$
+
+Cada una de estas ecuaciones define una recta en el plano $(Z_1,Z_2)$. En la siguiente figura se muestran las muestras, sus distribuciones marginales y las fronteras de decisión.
+
+```{r}
+#| fig-width: 14
+#| fig-height: 12
+
+# Theoretical marginal densities
+Z1_grid <- seq(-5, 5, length.out = 500)
+Z2_grid <- seq(-5, 5, length.out = 500)
+
+density_Z1_df <- bind_rows(
+  tibble(
+    Z1 = Z1_grid,
+    Densidad = pi1 * dnorm(Z1_grid, mean = mu1_Z[1], sd = 1),
+    Grupo = "Grupo 1"
+  ),
+  tibble(
+    Z1 = Z1_grid,
+    Densidad = pi2 * dnorm(Z1_grid, mean = mu2_Z[1], sd = 1),
+    Grupo = "Grupo 2"
+  ),
+  tibble(
+    Z1 = Z1_grid,
+    Densidad = pi3 * dnorm(Z1_grid, mean = mu3_Z[1], sd = 1),
+    Grupo = "Grupo 3"
+  )
+) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+    )
+  )
+
+density_Z2_df <- bind_rows(
+  tibble(
+    Z2 = Z2_grid,
+    Densidad = pi1 * dnorm(Z2_grid, mean = mu1_Z[2], sd = 1),
+    Grupo = "Grupo 1"
+  ),
+  tibble(
+    Z2 = Z2_grid,
+    Densidad = pi2 * dnorm(Z2_grid, mean = mu2_Z[2], sd = 1),
+    Grupo = "Grupo 2"
+  ),
+  tibble(
+    Z2 = Z2_grid,
+    Densidad = pi3 * dnorm(Z2_grid, mean = mu3_Z[2], sd = 1),
+    Grupo = "Grupo 3"
+  )
+) %>%
+  mutate(
+    Grupo = factor(
+      Grupo,
+      levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+    )
+  )
+
+# Common limits
+Z1_limits <- range(c(sample_Z_df$Z1, Z1_grid))
+Z2_limits <- range(c(sample_Z_df$Z2, Z2_grid))
+
+# Discriminant functions in canonical coordinates
+delta_canonical <- function(Z1, Z2, mu, pi) {
+  Z <- cbind(Z1, Z2)
+  
+  as.vector(Z %*% mu) -
+    0.5 * sum(mu^2) +
+    log(pi)
+}
+
+# Grid for the classification regions
+Z1_decision_grid <- seq(
+  Z1_limits[1],
+  Z1_limits[2],
+  length.out = 400
+)
+
+Z2_decision_grid <- seq(
+  Z2_limits[1],
+  Z2_limits[2],
+  length.out = 400
+)
+
+decision_grid_Z <- expand_grid(
+  Z1 = Z1_decision_grid,
+  Z2 = Z2_decision_grid
+) %>%
+  mutate(
+    d1 = delta_canonical(Z1, Z2, mu1_Z, pi1),
+    d2 = delta_canonical(Z1, Z2, mu2_Z, pi2),
+    d3 = delta_canonical(Z1, Z2, mu3_Z, pi3),
+    Clase = max.col(
+      cbind(d1, d2, d3),
+      ties.method = "first"
+    )
+  )
+
+# Samples and decision regions in canonical coordinates
+p_samples <- ggplot() +
+  geom_raster(
+    data = decision_grid_Z,
+    aes(
+      x = Z1,
+      y = Z2,
+      fill = factor(Clase)
+    ),
+    alpha = 0.08
+  ) +
+  geom_contour(
+    data = decision_grid_Z,
+    aes(
+      x = Z1,
+      y = Z2,
+      z = Clase
+    ),
+    breaks = c(1.5, 2.5),
+    color = "black",
+    linewidth = 1
+  ) +
+  geom_point(
+    data = sample_Z_df,
+    aes(
+      x = Z1,
+      y = Z2,
+      color = Grupo
+    ),
+    alpha = 0.8
+  ) +
+  geom_point(
+    data = tibble(
+      Z1 = c(mu1_Z[1], mu2_Z[1], mu3_Z[1]),
+      Z2 = c(mu1_Z[2], mu2_Z[2], mu3_Z[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2", "Grupo 3"),
+        levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+      )
+    ),
+    aes(
+      x = Z1,
+      y = Z2,
+      color = Grupo
+    ),
+    size = 4
+  ) +
+  c_scale_color("C blue", "C green", "C red") +
+  scale_fill_manual(
+    values = unname(
+      c_pal("C blue", "C green", "C red")
+    ),
+    guide = "none"
+  ) +
+  coord_cartesian(
+    xlim = Z1_limits,
+    ylim = Z2_limits
+  ) +
+  labs(
+    title = "Muestras en las coordenadas canónicas",
+    x = expression(Z[1]),
+    y = expression(Z[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+# Histogram of Z2
+p_hist_Z2 <- ggplot(
+  sample_Z_df,
+  aes(y = Z2, fill = Grupo)
+) +
+  geom_histogram(
+    aes(x = after_stat(density)),
+    position = "identity",
+    color = "black",
+    alpha = 0.35,
+    bins = 30,
+    orientation = "y"
+  ) +
+  c_scale_fill("C blue", "C green", "C red") +
+  coord_cartesian(ylim = Z2_limits) +
+  labs(
+    title = expression("Histograma en " * Z[2]),
+    x = "Densidad",
+    y = expression(Z[2]),
+    fill = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Histogram of Z1
+p_hist_Z1 <- ggplot(
+  sample_Z_df,
+  aes(x = Z1, fill = Grupo)
+) +
+  geom_histogram(
+    aes(y = after_stat(density)),
+    position = "identity",
+    color = "black",
+    alpha = 0.35,
+    bins = 30
+  ) +
+  c_scale_fill("C blue", "C green", "C red") +
+  coord_cartesian(xlim = Z1_limits) +
+  labs(
+    title = expression("Histograma en " * Z[1]),
+    x = expression(Z[1]),
+    y = "Densidad",
+    fill = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Weighted theoretical densities for Z1
+p_density_Z1 <- ggplot(
+  density_Z1_df,
+  aes(
+    x = Z1,
+    y = Densidad,
+    color = Grupo
+  )
+) +
+  geom_area(
+    aes(fill = Grupo),
+    alpha = 0.25,
+    position = "identity",
+    color = NA
+  ) +
+  geom_line(linewidth = 1) +
+  c_scale_fill("C blue", "C green", "C red") +
+  c_scale_color("C blue", "C green", "C red") +
+  coord_cartesian(xlim = Z1_limits) +
+  labs(
+    title = expression("Densidad en " * Z[1]),
+    x = expression(Z[1]),
+    y = "Densidad ponderada",
+    fill = "Grupos",
+    color = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Weighted theoretical densities for Z2
+p_density_Z2 <- ggplot(
+  density_Z2_df,
+  aes(
+    x = Densidad,
+    y = Z2,
+    color = Grupo
+  )
+) +
+  geom_area(
+    aes(fill = Grupo),
+    alpha = 0.25,
+    position = "identity",
+    orientation = "y",
+    color = NA
+  ) +
+  geom_line(
+    linewidth = 1,
+    orientation = "y"
+  ) +
+  c_scale_fill("C blue", "C green", "C red") +
+  c_scale_color("C blue", "C green", "C red") +
+  coord_cartesian(ylim = Z2_limits) +
+  labs(
+    title = expression("Densidad en " * Z[2]),
+    x = "Densidad ponderada",
+    y = expression(Z[2]),
+    fill = "Grupos",
+    color = "Grupos"
+  ) +
+  theme_krul() +
+  theme(legend.position = "none")
+
+# Layout
+design <- "
+ABC
+D##
+E##
+"
+
+p_samples +
+  p_hist_Z2 +
+  p_density_Z2 +
+  p_hist_Z1 +
+  p_density_Z1 +
+  plot_layout(
+    design = design,
+    widths = c(1.6, 1, 1),
+    heights = c(1.6, 1, 1),
+    guides = "collect"
+  ) &
+  theme(legend.position = "bottom")
+```
+
+Finalmente, podemos representar las mismas fronteras de decisión en las coordenadas originales. En lugar de transformar manualmente cada recta, calcularemos directamente las funciones discriminantes del modelo original sobre una malla y dibujaremos las regiones en las que cambia la clasificación.
+
+```{r}
+#| fig-width: 10
+#| fig-height: 10
+
+# Discriminant functions in the original coordinates
+Sigma_inv <- solve(Sigma)
+
+delta_original <- function(X1, X2, mu, pi) {
+  X <- cbind(X1, X2)
+  
+  as.vector(X %*% Sigma_inv %*% mu) -
+    as.numeric(0.5 * t(mu) %*% Sigma_inv %*% mu) +
+    log(pi)
+}
+
+# Grid for the classification regions
+X1_grid <- seq(
+  min(sample_df$X1) - 1,
+  max(sample_df$X1) + 1,
+  length.out = 400
+)
+
+X2_grid <- seq(
+  min(sample_df$X2) - 1,
+  max(sample_df$X2) + 1,
+  length.out = 400
+)
+
+decision_grid <- expand_grid(
+  X1 = X1_grid,
+  X2 = X2_grid
+) %>%
+  mutate(
+    d1 = delta_original(X1, X2, mu1, pi1),
+    d2 = delta_original(X1, X2, mu2, pi2),
+    d3 = delta_original(X1, X2, mu3, pi3),
+    Clase = max.col(
+      cbind(d1, d2, d3),
+      ties.method = "first"
+    )
+  )
+
+p_original_decision <- ggplot() +
+  geom_raster(
+    data = decision_grid,
+    aes(
+      x = X1,
+      y = X2,
+      fill = factor(Clase)
+    ),
+    alpha = 0.08
+  ) +
+  geom_contour(
+    data = decision_grid,
+    aes(
+      x = X1,
+      y = X2,
+      z = Clase
+    ),
+    breaks = c(1.5, 2.5),
+    color = "black",
+    linewidth = 1
+  ) +
+  geom_point(
+    data = sample_df,
+    aes(
+      x = X1,
+      y = X2,
+      color = Grupo
+    ),
+    alpha = 0.8
+  ) +
+  geom_point(
+    data = tibble(
+      X1 = c(mu1[1], mu2[1], mu3[1]),
+      X2 = c(mu1[2], mu2[2], mu3[2]),
+      Grupo = factor(
+        c("Grupo 1", "Grupo 2", "Grupo 3"),
+        levels = c("Grupo 1", "Grupo 2", "Grupo 3")
+      )
+    ),
+    aes(
+      x = X1,
+      y = X2,
+      color = Grupo
+    ),
+    size = 4
+  ) +
+  c_scale_color("C blue", "C green", "C red") +
+  scale_fill_manual(
+    values = unname(
+      c_pal("C blue", "C green", "C red")
+    ),
+    guide = "none"
+  ) +
+  coord_equal() +
+  labs(
+    title = "Muestras en las coordenadas originales",
+    x = expression(X[1]),
+    y = expression(X[2]),
+    color = "Grupos"
+  ) +
+  theme_krul()
+
+p_original_decision
+```
