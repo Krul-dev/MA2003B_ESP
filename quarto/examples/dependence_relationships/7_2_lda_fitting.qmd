@@ -1,0 +1,388 @@
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(tidymodels)
+library(discrim)
+library(here)
+library(biotools)
+library(krulRutils)
+
+lda_data <- read_csv(
+  here("data", "linear_discriminant_data.csv")
+) |>
+  mutate(
+    group = factor(
+      group,
+      levels = c("A", "B", "C", "D", "E", "F")
+    )
+  )
+
+lda_data
+```
+
+## Datos
+
+El conjunto de datos contiene ocho variables explicativas cuantitativas y una variable respuesta categórica con seis grupos.
+
+```{r}
+#| label: inspect-data
+
+lda_data |>
+  count(group) |>
+  mutate(proportion = n / sum(n))
+```
+
+Debido a que los datos fueron generados sintéticamente, conocemos las probabilidades a priori poblacionales utilizadas para generar los grupos:
+
+```{r}
+#| label: priors
+
+priors <- c(
+  A = 0.12,
+  B = 0.18,
+  C = 0.15,
+  D = 0.20,
+  E = 0.10,
+  F = 0.25
+)
+
+priors
+```
+
+## Partición de los datos
+
+Reservamos el 20% de las observaciones como conjunto de prueba. La estratificación preserva aproximadamente las proporciones de los grupos en ambas particiones.
+
+```{r}
+#| label: data-split
+
+set.seed(123)
+
+lda_split <- initial_split(
+  lda_data,
+  prop = 0.80,
+  strata = group
+)
+
+lda_train <- training(lda_split)
+lda_test  <- testing(lda_split)
+
+lda_train |>
+  count(group) |>
+  mutate(proportion = n / sum(n))
+
+lda_test |>
+  count(group) |>
+  mutate(proportion = n / sum(n))
+```
+
+Todas las verificaciones de los supuestos y la construcción del modelo se realizan utilizando los datos de entrenamiento. Los datos de prueba se mantienen separados hasta la evaluación final.
+
+## Supuestos del Análisis Discriminante Lineal
+
+El Análisis Discriminante Lineal clásico supone que, dentro de cada grupo,
+
+$$X \mid G=k \sim N_p(\mu\_k,\Sigma)$$
+
+donde todos los grupos comparten la misma matriz de covarianzas $\Sigma$.
+
+La independencia de las observaciones generalmente no puede establecerse únicamente a partir de los valores observados; es una propiedad del proceso de generación o muestreo de los datos. En este ejemplo sintético, las observaciones fueron generadas de manera independiente.
+
+### Normalidad multivariada dentro de cada grupo
+
+Aplicamos la prueba de Henze--Zirkler por separado a cada grupo.
+
+```{r}
+#| label: multivariate-normality
+
+normality_results <- lda_train |>
+  group_split(group) |>
+  map_dfr(
+    \(data_group) {
+      current_group <- first(data_group$group)
+
+      result <- MVN::mvn(
+        data = data_group |> dplyr::select(-group),
+        mvn_test = "hz",
+        tidy = TRUE
+      )
+
+      result$multivariate_normality |>
+        mutate(group = current_group, .before = 1)
+    }
+  )
+
+normality_results
+```
+
+Para cada grupo, las hipótesis son
+
+$$H_0:\text{el vector de variables explicativas sigue una distribución normal multivariada}, $$
+
+$$H_1:\text{el vector de variables explicativas no sigue una distribución normal multivariada}. $$
+
+Con un nivel de significancia de $0.05$.
+
+### Igualdad de las matrices de covarianzas
+
+La prueba de Box (M) puede utilizarse para comparar las matrices de covarianzas de los seis grupos.
+
+```{r}
+#| label: box-m
+
+box_m_result <- biotools::boxM(
+  lda_train |> dplyr::select(starts_with("x")),
+  lda_train$group
+)
+
+box_m_result
+```
+
+Las hipótesis de la prueba de Box son
+
+$$H_0:\Sigma_A=\Sigma_B=\Sigma_C=\Sigma_D=\Sigma_E=\Sigma_F$$
+
+contra la alternativa de que al menos una matriz de covarianzas poblacional es diferente.
+
+Con un nivel de significancia de $0.05$.
+
+## Modelo de Análisis Discriminante Lineal
+
+Ahora definimos el modelo de ADL. El motor `MASS` implementa el análisis discriminante lineal clásico. Como conocemos las probabilidades a priori poblacionales en este ejemplo sintético, las especificamos explícitamente.
+
+```{r}
+#| label: lda-specification
+
+lda_spec <- discrim_linear() |>
+  set_engine(
+    "MASS",
+    prior = unname(priors)
+  )
+```
+
+El modelo se ajusta utilizando únicamente las observaciones del conjunto de entrenamiento.
+
+```{r}
+#| label: lda-fit
+
+lda_fit <- lda_spec |>
+  fit(
+    group ~ .,
+    data = lda_train
+  )
+
+lda_fit
+```
+
+## Funciones discriminantes
+
+Con $K=6$ grupos y $p=8$ variables explicativas, el Análisis Discriminante Lineal puede construir como máximo
+
+$$\min(p,K-1)=\min(8,5)=5$$
+
+funciones discriminantes lineales.
+
+Podemos extraer el modelo subyacente `MASS::lda()` para examinar los coeficientes discriminantes.
+
+```{r}
+#| label: discriminant-coefficients
+
+lda_engine <- extract_fit_engine(lda_fit)
+
+lda_engine$scaling
+```
+
+También podemos calcular las puntuaciones discriminantes correspondientes a las observaciones del conjunto de entrenamiento.
+
+```{r}
+#| label: discriminant-scores
+
+lda_scores <- predict(
+  lda_engine,
+  newdata = lda_train
+)$x |>
+  as_tibble() |>
+  mutate(group = lda_train$group, .before = 1)
+
+lda_scores
+```
+
+Las primeras dos direcciones discriminantes proporcionan una representación bidimensional de los datos originales de ocho dimensiones.
+
+```{r}
+#| label: discriminant-plot
+#| fig-cap: "Observaciones de entrenamiento proyectadas sobre las primeras dos direcciones discriminantes lineales."
+
+ggplot(
+  lda_scores,
+  aes(
+    x = LD1,
+    y = LD2,
+    color = group
+  )
+) +
+  geom_point(
+    alpha = 0.7,
+    size = 2
+  ) +
+  labs(
+    x = "Primer discriminante lineal",
+    y = "Segundo discriminante lineal",
+    color = "Grupo"
+  ) +
+  theme_krul()
+```
+
+## Validación cruzada
+
+Antes de examinar el conjunto de prueba, estimamos el desempeño predictivo mediante validación cruzada estratificada de 10 particiones (10-fold cross-validation) sobre el conjunto de entrenamiento.
+
+```{r}
+#| label: cross-validation
+
+set.seed(123)
+
+lda_folds <- vfold_cv(
+  lda_train,
+  v = 10,
+  strata = group
+)
+
+lda_workflow <- workflow() |>
+  add_model(lda_spec) |>
+  add_formula(group ~ .)
+
+lda_resamples <- fit_resamples(
+  lda_workflow,
+  resamples = lda_folds,
+  metrics = metric_set(
+    accuracy,
+    kap
+  ),
+  control = control_resamples(
+    save_pred = TRUE
+  )
+)
+
+collect_metrics(lda_resamples)
+```
+
+Los resultados de la validación cruzada estiman la precisión con la que se espera que el procedimiento de ADL clasifique nuevas observaciones generadas bajo condiciones similares.
+
+También podemos examinar la exactitud obtenida en cada pliegue.
+
+```{r}
+#| label: cv-fold-accuracy
+
+collect_predictions(lda_resamples) |>
+  group_by(id) |>
+  accuracy(
+    truth = group,
+    estimate = .pred_class
+  )
+```
+
+## Evaluación final con los datos de prueba
+
+El modelo final se ajusta utilizando todo el conjunto de entrenamiento y se evalúa una sola vez sobre el conjunto de prueba reservado.
+
+```{r}
+#| label: final-workflow-fit
+
+final_lda_fit <- lda_workflow |>
+  fit(data = lda_train)
+```
+
+Ahora generamos predicciones para observaciones que no fueron utilizadas para ajustar el modelo.
+
+```{r}
+#| label: test-predictions
+
+lda_test_predictions <- predict(
+  final_lda_fit,
+  new_data = lda_test,
+  type = "class"
+) |>
+  bind_cols(
+    predict(
+      final_lda_fit,
+      new_data = lda_test,
+      type = "prob"
+    )
+  ) |>
+  bind_cols(
+    lda_test |> dplyr::select(group)
+  )
+
+lda_test_predictions
+```
+
+### Exactitud de clasificación
+
+```{r}
+#| label: test-accuracy
+
+lda_test_predictions |>
+  accuracy(
+    truth = group,
+    estimate = .pred_class
+  )
+```
+
+### Métricas adicionales de clasificación
+
+Debido a que los grupos tienen probabilidades a priori diferentes, la exactitud por sí sola no describe todos los aspectos del desempeño predictivo. Por ello, también calculamos el coeficiente kappa de Cohen y la exactitud balanceada.
+
+```{r}
+#| label: test-metrics
+
+metric_set(
+  accuracy,
+  kap,
+  bal_accuracy
+)(
+  lda_test_predictions,
+  truth = group,
+  estimate = .pred_class
+)
+```
+
+### Matriz de confusión
+
+La matriz de confusión muestra qué grupos son confundidos con mayor frecuencia entre sí.
+
+```{r}
+#| label: confusion-matrix
+
+lda_confusion <- lda_test_predictions |>
+  conf_mat(
+    truth = group,
+    estimate = .pred_class
+  )
+
+lda_confusion
+```
+
+La matriz de confusión también puede visualizarse.
+
+```{r}
+#| label: confusion-matrix-plot
+
+autoplot(
+  lda_confusion,
+  type = "heatmap"
+)
+```
+
+## Resumen
+
+En general, se recomienda seguir el siguiente flujo de trabajo en un problema de análisis discriminante lineal.
+
+1.  Verificar la normalidad multivariada dentro de cada grupo.
+2.  Verificar la igualdad de las matrices de covarianzas de los grupos.
+3.  Ajustar el modelo de ADL utilizando los datos de entrenamiento.
+4.  Examinar las funciones discriminantes resultantes.
+5.  Estimar el desempeño predictivo mediante validación cruzada.
+6.  Evaluar el modelo final ajustado sobre un conjunto de prueba reservado.

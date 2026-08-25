@@ -1,15 +1,20 @@
 {
+  "bioconductor.enabled": false,
   "bioconductor.version": null,
   "external.libraries": [],
-  "ignored.packages": [],
+  "ignored.packages": [
+    "BiocVersion"
+  ],
+  "lockfile.sanitize": true,
   "package.dependency.fields": [
-    "Imports",
     "Depends",
+    "Imports",
     "LinkingTo"
   ],
   "ppm.enabled": null,
   "ppm.ignored.urls": [],
   "r.version": null,
+  "snapshot.dev": false,
   "snapshot.type": "implicit",
   "use.cache": true,
   "vcs.ignore.cellar": true,
