@@ -86,7 +86,7 @@ Todas las verificaciones de los supuestos y la construcción del modelo se reali
 
 El Análisis Discriminante Lineal clásico supone que, dentro de cada grupo,
 
-$$X \mid G=k \sim N_p(\mu\_k,\Sigma)$$
+$$X \mid G=k \sim N_p(\mu_k,\Sigma)$$
 
 donde todos los grupos comparten la misma matriz de covarianzas $\Sigma$.
 
@@ -226,9 +226,17 @@ ggplot(
   )
 ) +
   geom_point(
-    alpha = 0.7,
+    alpha = 0.9,
     size = 2
   ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+    ) +
   labs(
     x = "Primer discriminante lineal",
     y = "Segundo discriminante lineal",
