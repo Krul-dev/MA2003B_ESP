@@ -1,3 +1,5 @@
+# Ajuste y Adecuación del Modelo Discriminante Gaussiano
+
 ```{r}
 #| label: setup
 #| message: false
