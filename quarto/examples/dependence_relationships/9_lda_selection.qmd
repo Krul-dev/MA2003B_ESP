@@ -1,0 +1,481 @@
+# Selección de Variables para Análisis Discriminante Lineal
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(tidymodels)
+library(discrim)
+library(important)
+library(here)
+
+options(scipen = 999)
+
+lda_data <- read_csv(
+  here("data", "linear_discriminant_selection_data.csv")
+) |>
+  mutate(
+    group = factor(
+      group,
+      levels = c("A", "B", "C", "D", "E", "F")
+    )
+  )
+
+lda_data
+```
+
+## Datos
+
+El conjunto de datos contiene ocho variables explicativas cuantitativas y una variable respuesta categórica con seis grupos.
+
+Los datos fueron generados sintéticamente de manera que las primeras cuatro variables contienen información para distinguir entre los grupos, mientras que las últimas cuatro variables son variables de ruido:
+
+$$
+X_1,X_2,X_3,X_4:
+\text{ variables relevantes},
+$$
+
+$$
+X_5,X_6,X_7,X_8:
+\text{ variables de ruido}.
+$$
+
+Las probabilidades a priori poblacionales utilizadas para generar los grupos son
+
+```{r}
+#| label: priors
+
+priors <- c(
+  A = 0.12,
+  B = 0.18,
+  C = 0.15,
+  D = 0.20,
+  E = 0.10,
+  F = 0.25
+)
+
+priors
+```
+
+Podemos verificar las proporciones observadas en el conjunto de datos.
+
+```{r}
+#| label: inspect-data
+
+lda_data |>
+  count(group) |>
+  mutate(
+    proportion = n / sum(n)
+  )
+```
+
+## Partición de los datos
+
+Reservamos el 20% de las observaciones como conjunto de prueba. La estratificación preserva aproximadamente las proporciones de los grupos en ambas particiones.
+
+```{r}
+#| label: data-split
+
+set.seed(123)
+
+lda_split <- initial_split(
+  lda_data,
+  prop = 0.80,
+  strata = group
+)
+
+lda_train <- training(lda_split)
+lda_test  <- testing(lda_split)
+```
+
+La selección de variables y el ajuste del modelo se realizan utilizando únicamente los datos de entrenamiento. El conjunto de prueba se mantiene separado hasta la evaluación final.
+
+## Selección de variables mediante ANOVA
+
+Para cada variable explicativa $X_j$ realizamos un ANOVA de una vía para comparar su media entre los seis grupos.
+
+Las hipótesis son
+
+$$
+H_0:
+\mu_{Aj}
+=
+\mu_{Bj}
+=
+\mu_{Cj}
+=
+\mu_{Dj}
+=
+\mu_{Ej}
+=
+\mu_{Fj},
+$$
+
+contra
+
+$$
+H_1:
+\text{al menos una de las medias es diferente}.
+$$
+
+Si el valor $p$ es menor que $0.05$, consideramos que existe evidencia de que la variable contiene información para distinguir entre los grupos y conservamos la variable.
+
+La selección se incorpora directamente a una receta de `tidymodels` mediante `step_predictor_retain()` del paquete `important`.
+
+```{r}
+#| label: lda-recipe
+
+lda_recipe <- recipe(
+  group ~ .,
+  data = lda_train
+) |>
+  step_predictor_retain(
+    all_predictors(),
+    score = aov_pval >= -log10(0.05)
+  )
+```
+
+El paquete `important` utiliza internamente la transformación
+
+$$
+-\log_{10}(p)
+$$
+
+para las puntuaciones basadas en valores $p$. Por esta razón, la condición
+
+```r
+aov_pval >= -log10(0.05)
+```
+
+es equivalente al criterio usual
+
+$$
+p \leq 0.05.
+$$
+
+### Variables seleccionadas
+
+Podemos preparar una copia de la receta utilizando los datos de entrenamiento para inspeccionar el resultado de la selección.
+
+```{r}
+#| label: inspect-selection
+
+lda_recipe_prepped <- prep(
+  lda_recipe,
+  training = lda_train
+)
+
+selection_results <- tidy(
+  lda_recipe_prepped,
+  number = 1
+) |>
+  arrange(
+    removed,
+    aov_pval
+  )
+
+selection_results
+```
+
+La columna `removed` indica si cada predictor fue eliminado por el procedimiento.
+
+Podemos extraer directamente las variables conservadas.
+
+```{r}
+#| label: selected-variables
+
+selected_variables <- selection_results |>
+  filter(!removed) |>
+  pull(terms)
+
+selected_variables
+```
+
+Como los datos fueron generados sintéticamente, conocemos de antemano cuáles variables contienen información discriminante. Esperamos que el procedimiento conserve
+
+$$
+X_1,X_2,X_3,X_4
+$$
+
+y elimine
+
+$$
+X_5,X_6,X_7,X_8.
+$$
+
+## Modelo de Análisis Discriminante Lineal
+
+Definimos ahora el modelo de Análisis Discriminante Lineal utilizando el motor `MASS`.
+
+```{r}
+#| label: lda-specification
+
+lda_spec <- discrim_linear() |>
+  set_engine(
+    "MASS",
+    prior = unname(priors)
+  )
+```
+
+Construimos un workflow que combina la receta de selección con el modelo LDA.
+
+```{r}
+#| label: lda-workflow
+
+lda_workflow <- workflow() |>
+  add_recipe(lda_recipe) |>
+  add_model(lda_spec)
+
+lda_workflow
+```
+
+La selección de variables forma parte del workflow. Por lo tanto, cada vez que se ajusta el workflow, la selección se estima utilizando únicamente los datos disponibles para ese ajuste.
+
+## Validación cruzada
+
+Estimamos el desempeño predictivo mediante validación cruzada estratificada de 10 particiones sobre el conjunto de entrenamiento.
+
+```{r}
+#| label: cross-validation
+
+set.seed(123)
+
+lda_folds <- vfold_cv(
+  lda_train,
+  v = 10,
+  strata = group
+)
+
+lda_resamples <- fit_resamples(
+  lda_workflow,
+  resamples = lda_folds,
+  metrics = metric_set(
+    accuracy,
+    kap
+  ),
+  control = control_resamples(
+    save_pred = TRUE
+  )
+)
+
+collect_metrics(lda_resamples)
+```
+
+Debido a que la selección está incluida dentro de la receta, el procedimiento de selección se vuelve a estimar dentro de cada partición de la validación cruzada utilizando solamente las observaciones de entrenamiento correspondientes.
+
+También podemos examinar la exactitud obtenida en cada pliegue.
+
+```{r}
+#| label: fold-accuracy
+
+collect_predictions(lda_resamples) |>
+  group_by(id) |>
+  accuracy(
+    truth = group,
+    estimate = .pred_class
+  )
+```
+
+## Ajuste del modelo final
+
+Después de estimar el desempeño predictivo mediante validación cruzada, ajustamos el workflow final utilizando todo el conjunto de entrenamiento.
+
+```{r}
+#| label: final-fit
+
+final_lda_fit <- lda_workflow |>
+  fit(
+    data = lda_train
+  )
+
+final_lda_fit
+```
+
+Podemos examinar la receta estimada dentro del modelo final para verificar las variables seleccionadas.
+
+```{r}
+#| label: final-selected-variables
+
+final_recipe <- extract_recipe(
+  final_lda_fit,
+  estimated = TRUE
+)
+
+tidy(
+  final_recipe,
+  number = 1
+) |>
+  arrange(
+    removed,
+    aov_pval
+  )
+```
+
+## Funciones discriminantes del modelo reducido
+
+Una vez eliminadas las variables de ruido, el modelo final utiliza cuatro variables explicativas.
+
+Con $K=6$ grupos y $p=4$ variables seleccionadas, el número máximo de funciones discriminantes lineales es
+
+$$
+\min(p,K-1)
+=
+\min(4,5)
+=
+4.
+$$
+
+Podemos extraer el modelo subyacente de `MASS::lda()` para examinar los coeficientes discriminantes.
+
+```{r}
+#| label: discriminant-coefficients
+
+lda_engine <- extract_fit_engine(
+  final_lda_fit
+)
+
+lda_engine$scaling
+```
+
+También podemos calcular las puntuaciones discriminantes correspondientes a las observaciones del conjunto de entrenamiento después de aplicar la selección de variables.
+
+```{r}
+#| label: discriminant-scores
+
+lda_train_selected <- bake(
+  final_recipe,
+  new_data = lda_train
+)
+
+lda_scores <- predict(
+  lda_engine,
+  newdata = lda_train_selected
+)$x |>
+  as_tibble() |>
+  mutate(
+    group = lda_train$group,
+    .before = 1
+  )
+
+lda_scores
+```
+
+Las primeras dos direcciones discriminantes proporcionan una representación bidimensional del modelo reducido.
+
+```{r}
+#| fig-cap: "Observaciones de entrenamiento proyectadas sobre las primeras dos direcciones discriminantes lineales después de la selección de variables."
+#| fig-width: 12
+#| fig-height: 6
+
+ggplot(
+  lda_scores,
+  aes(
+    x = LD1,
+    y = LD2,
+    color = group
+  )
+) +
+  geom_point(
+    alpha = 0.9,
+    size = 2
+  ) +
+  labs(
+    x = "Primer discriminante lineal",
+    y = "Segundo discriminante lineal",
+    color = "Grupo"
+  )
+```
+
+## Evaluación final con los datos de prueba
+
+El conjunto de prueba se utiliza una sola vez para evaluar el procedimiento completo de selección y clasificación.
+
+```{r}
+#| label: test-predictions
+
+lda_test_predictions <- predict(
+  final_lda_fit,
+  new_data = lda_test,
+  type = "class"
+) |>
+  bind_cols(
+    predict(
+      final_lda_fit,
+      new_data = lda_test,
+      type = "prob"
+    )
+  ) |>
+  bind_cols(
+    lda_test |>
+      dplyr::select(group)
+  )
+
+lda_test_predictions
+```
+
+### Exactitud de clasificación
+
+```{r}
+#| label: test-accuracy
+
+lda_test_predictions |>
+  accuracy(
+    truth = group,
+    estimate = .pred_class
+  )
+```
+
+### Métricas adicionales de clasificación
+
+```{r}
+#| label: test-metrics
+
+metric_set(
+  accuracy,
+  kap,
+  bal_accuracy
+)(
+  lda_test_predictions,
+  truth = group,
+  estimate = .pred_class
+)
+```
+
+### Matriz de confusión
+
+```{r}
+#| label: confusion-matrix
+
+lda_confusion <- lda_test_predictions |>
+  conf_mat(
+    truth = group,
+    estimate = .pred_class
+  )
+
+lda_confusion
+```
+
+```{r}
+#| label: confusion-matrix-plot
+
+autoplot(
+  lda_confusion,
+  type = "heatmap"
+)
+```
+
+## Resumen
+
+En este ejemplo utilizamos selección supervisada de variables antes de ajustar el modelo LDA.
+
+El procedimiento puede resumirse de la siguiente manera:
+
+1. Separar los datos en entrenamiento y prueba.
+2. Para cada predictor, comparar sus medias entre los grupos mediante ANOVA.
+3. Conservar las variables para las cuales existe evidencia de diferencias entre las medias de los grupos.
+4. Incorporar la selección dentro de una receta de `tidymodels`.
+5. Ajustar el modelo LDA utilizando únicamente las variables seleccionadas.
+6. Estimar el desempeño del procedimiento completo mediante validación cruzada.
+7. Ajustar el modelo final con todos los datos de entrenamiento.
+8. Evaluar el modelo final una sola vez sobre el conjunto de prueba reservado.
