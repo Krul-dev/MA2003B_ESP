@@ -2390,6 +2390,47 @@
       "Maintainer": "Michael Hahsler <mhahsler@lyle.smu.edu>",
       "Repository": "CRAN"
     },
+    "desirability2": {
+      "Package": "desirability2",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Title": "Desirability Functions for Multiparameter Optimization",
+      "Authors@R": "c( person(\"Max\", \"Kuhn\", , \"max@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-2402-136X\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\")) )",
+      "Description": "In-line functions for multivariate optimization via desirability functions (Derringer and Suich, 1980, <doi:10.1080/00224065.1980.11980968>) with easy use within 'dplyr' pipelines.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://desirability2.tidymodels.org, https://github.com/tidymodels/desirability2",
+      "BugReports": "https://github.com/tidymodels/desirability2/issues",
+      "Depends": [
+        "R (>= 4.1.0)"
+      ],
+      "Imports": [
+        "cli",
+        "dplyr",
+        "purrr",
+        "rlang (>= 1.1.0)",
+        "S7",
+        "stats",
+        "tibble"
+      ],
+      "Suggests": [
+        "covr",
+        "ggplot2",
+        "spelling",
+        "testthat (>= 3.0.0)",
+        "tune"
+      ],
+      "Config/Needs/website": "tidyverse/tidytemplate",
+      "Config/testthat/edition": "3",
+      "Encoding": "UTF-8",
+      "Language": "en-US",
+      "LazyData": "true",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'checks.R' 'computations.R' 'data.R' 'in-line.R' 'desirability.R' 'desirability2-package.R' 'import-standalone-obj-type.R' 'import-standalone-types-check.R' 'overall.R' 'tune.R' 'zzz.R'",
+      "NeedsCompilation": "no",
+      "Author": "Max Kuhn [aut, cre] (ORCID: <https://orcid.org/0000-0003-2402-136X>), Posit Software, PBC [cph, fnd]",
+      "Maintainer": "Max Kuhn <max@posit.co>",
+      "Repository": "CRAN"
+    },
     "diagram": {
       "Package": "diagram",
       "Version": "1.6.5",
@@ -2867,6 +2908,57 @@
       "NeedsCompilation": "yes",
       "Author": "Winston Chang [aut, cre], Posit Software, PBC [cph, fnd], Tessil [cph] (hopscotch_map library)",
       "Maintainer": "Winston Chang <winston@posit.co>",
+      "Repository": "CRAN"
+    },
+    "filtro": {
+      "Package": "filtro",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Title": "Feature Selection Using Supervised Filter-Based Methods",
+      "Authors@R": "c( person(\"Frances\", \"Lin\", , \"franceslinyc@gmail.com\", role = c(\"aut\", \"cre\")), person(\"Max\", \"Kuhn\", , \"max@posit.co\", role = \"aut\", comment = c(ORCID = \"0000-0003-2402-136X\")), person(\"Emil\", \"Hvitfeldt\", , \"emil.hvitfeldt@posit.co\", role = \"aut\"), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )",
+      "Description": "Tidy tools to apply filter-based supervised feature selection methods. These methods score and rank feature relevance using metrics such as p-values, correlation, and importance scores (Kuhn and Johnson (2019) <doi:10.1201/9781315108230>).",
+      "License": "MIT + file LICENSE",
+      "URL": "https://github.com/tidymodels/filtro, https://filtro.tidymodels.org/",
+      "BugReports": "https://github.com/tidymodels/filtro/issues",
+      "Depends": [
+        "R (>= 4.1)"
+      ],
+      "Imports": [
+        "cli",
+        "desirability2 (>= 0.1.0)",
+        "dplyr",
+        "generics",
+        "pROC",
+        "purrr",
+        "rlang (>= 1.1.0)",
+        "S7",
+        "stats",
+        "tibble",
+        "tidyr",
+        "vctrs"
+      ],
+      "Suggests": [
+        "aorsf",
+        "FSelectorRcpp",
+        "knitr",
+        "modeldata",
+        "partykit",
+        "quarto",
+        "ranger",
+        "rmarkdown",
+        "testthat (>= 3.0.0)",
+        "titanic"
+      ],
+      "Config/Needs/website": "tidyverse/tidytemplate",
+      "Config/testthat/edition": "3",
+      "Encoding": "UTF-8",
+      "RoxygenNote": "7.3.2",
+      "Collate": "'aaa.R' 'class_score.R' 'data.R' 'desirability2.R' 'filtro-package.R' 'import-standalone-obj-type.R' 'import-standalone-types-check.R' 'misc.R' 'score-aov.R' 'utilities.R' 'score-cor.R' 'score-cross_tab.R' 'score-forest_imp.R' 'score-info_gain.R' 'score-roc_auc.R' 'zzz.R'",
+      "LazyData": "true",
+      "VignetteBuilder": "quarto, knitr",
+      "NeedsCompilation": "no",
+      "Author": "Frances Lin [aut, cre], Max Kuhn [aut] (ORCID: <https://orcid.org/0000-0003-2402-136X>), Emil Hvitfeldt [aut], Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+      "Maintainer": "Frances Lin <franceslinyc@gmail.com>",
       "Repository": "CRAN"
     },
     "fontawesome": {
@@ -4466,6 +4558,62 @@
       "NeedsCompilation": "no",
       "Author": "Rich FitzJohn [aut, cre]",
       "Maintainer": "Rich FitzJohn <rich.fitzjohn@gmail.com>",
+      "Repository": "CRAN"
+    },
+    "important": {
+      "Package": "important",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Title": "Supervised Feature Selection",
+      "Authors@R": "c( person(\"Max\", \"Kuhn\", , \"max@posit.co\", role = c(\"aut\", \"cre\"), comment = c(ORCID = \"0000-0003-2402-136X\")), person(\"Posit Software, PBC\", role = c(\"cph\", \"fnd\"), comment = c(ROR = \"03wc8by49\")) )",
+      "Description": "Interfaces for choosing important predictors in supervised regression, classification, and censored regression models. Permuted importance scores (Biecek and Burzykowski (2021) <doi:10.1201/9780429027192>) can be computed for 'tidymodels' model fits.",
+      "License": "MIT + file LICENSE",
+      "URL": "https://important.tidymodels.org/, https://github.com/tidymodels/important",
+      "BugReports": "https://github.com/tidymodels/important/issues",
+      "Depends": [
+        "R (>= 4.1.0)",
+        "recipes (>= 1.1.0)"
+      ],
+      "Imports": [
+        "cli",
+        "desirability2 (>= 0.2.0)",
+        "dplyr",
+        "filtro (>= 0.2.0)",
+        "generics",
+        "ggplot2",
+        "hardhat (>= 1.4.1)",
+        "purrr",
+        "rlang (>= 1.1.0)",
+        "S7",
+        "tibble",
+        "tidyr",
+        "tune",
+        "vctrs",
+        "withr",
+        "workflows"
+      ],
+      "Suggests": [
+        "censored",
+        "future",
+        "future.apply",
+        "mirai",
+        "modeldata",
+        "parsnip",
+        "ranger",
+        "spelling",
+        "survival",
+        "testthat (>= 3.0.0)",
+        "yardstick"
+      ],
+      "Config/Needs/website": "tidyverse/tidytemplate, tidymodels",
+      "Config/testthat/edition": "3",
+      "Config/usethis/last-upkeep": "2025-06-09",
+      "Encoding": "UTF-8",
+      "Language": "en-US",
+      "RoxygenNote": "7.3.3",
+      "NeedsCompilation": "no",
+      "Author": "Max Kuhn [aut, cre] (ORCID: <https://orcid.org/0000-0003-2402-136X>), Posit Software, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
+      "Maintainer": "Max Kuhn <max@posit.co>",
       "Repository": "CRAN"
     },
     "infer": {
