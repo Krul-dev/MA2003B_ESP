@@ -1,6 +1,6 @@
 # Selección paso a paso para LDA con `palmerpenguins`
 
-Usaremos `stepclass()` del paquete `{klaR}` para escoger automáticamente el subconjunto de variables que mejor separa las especies de pingüinos (datos de `palmerpenguins`). Al final entrenaremos un LDA con las variables elegidas y revisaremos su desempeño.
+Usaremos `stepclass()` del paquete `klaR` para escoger automáticamente el subconjunto de variables que mejor separa las especies de pingüinos (datos de `palmerpenguins`). Al final entrenaremos un LDA con las variables elegidas y revisaremos su desempeño.
 
 ## Preparación de los datos
 

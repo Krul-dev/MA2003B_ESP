@@ -217,7 +217,7 @@ sample_df <- bind_rows(
 Z <- t(A %*% t(as.matrix(sample_df[, c("X1", "X2")])))
 
 sample_Z_df <- sample_df %>%
-  select(Grupo) %>%
+  dplyr::select(Grupo) %>%
   bind_cols(
     tibble(
       Z1 = Z[, 1],

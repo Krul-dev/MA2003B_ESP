@@ -10,6 +10,7 @@ library(discrim)
 library(here)
 library(biotools)
 library(krulRutils)
+options(scipen = 999)
 
 lda_data <- read_csv(
   here("data", "linear_discriminant_data.csv")
@@ -214,8 +215,9 @@ lda_scores
 Las primeras dos direcciones discriminantes proporcionan una representación bidimensional de los datos originales de ocho dimensiones.
 
 ```{r}
-#| label: discriminant-plot
 #| fig-cap: "Observaciones de entrenamiento proyectadas sobre las primeras dos direcciones discriminantes lineales."
+#| fig-width: 12
+#| fig-height: 6
 
 ggplot(
   lda_scores,
@@ -284,8 +286,6 @@ Los resultados de la validación cruzada estiman la precisión con la que se esp
 También podemos examinar la exactitud obtenida en cada pliegue.
 
 ```{r}
-#| label: cv-fold-accuracy
-
 collect_predictions(lda_resamples) |>
   group_by(id) |>
   accuracy(
@@ -299,8 +299,6 @@ collect_predictions(lda_resamples) |>
 El modelo final se ajusta utilizando todo el conjunto de entrenamiento y se evalúa una sola vez sobre el conjunto de prueba reservado.
 
 ```{r}
-#| label: final-workflow-fit
-
 final_lda_fit <- lda_workflow |>
   fit(data = lda_train)
 ```
@@ -308,8 +306,6 @@ final_lda_fit <- lda_workflow |>
 Ahora generamos predicciones para observaciones que no fueron utilizadas para ajustar el modelo.
 
 ```{r}
-#| label: test-predictions
-
 lda_test_predictions <- predict(
   final_lda_fit,
   new_data = lda_test,
