@@ -386,9 +386,10 @@ autoplot(
 
 En general, se recomienda seguir el siguiente flujo de trabajo en un problema de análisis discriminante lineal.
 
-1.  Verificar la normalidad multivariada dentro de cada grupo.
-2.  Verificar la igualdad de las matrices de covarianzas de los grupos.
-3.  Ajustar el modelo de ADL utilizando los datos de entrenamiento.
-4.  Examinar las funciones discriminantes resultantes.
-5.  Estimar el desempeño predictivo mediante validación cruzada.
-6.  Evaluar el modelo final ajustado sobre un conjunto de prueba reservado.
+1.  Separar los datos en entrenamiento y prueba.
+2.  Verificar la normalidad multivariada dentro de cada grupo, usando los datos de entrenamiento.
+3.  Verificar la igualdad de las matrices de covarianzas de los grupos, usando los datos de entrenamiento.
+4.  Ajustar el modelo de ADL utilizando los datos de entrenamiento.
+5.  Examinar las funciones discriminantes resultantes.
+6.  Estimar el desempeño predictivo mediante validación cruzada.
+7.  Evaluar el modelo final sobre el conjunto de prueba reservado.

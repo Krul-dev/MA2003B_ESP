@@ -1,0 +1,429 @@
+# Método LDA paso a paso para la selección de variables
+
+### Método LDA paso a paso para la selección de variables
+El análisis discriminante lineal (LDA) es una técnica poderosa para clasificar observaciones en grupos basándose en variables predictoras.
+
+\bigpause 
+
+Sin embargo, es común que no todas las variables predictoras disponibles satisfagan los supuestos del modelo o contribuyan significativamente a la discriminación entre grupos.
+
+\bigpause 
+
+En estos casos, disminuir el número de variables puede disminuir el ruido y mejorar la interpretabilidad y el desempeño del modelo, especialmente cuando se presentan problemas de multicolinealidad o de heterocedasticidad.
+
+\bigpause 
+
+En este capítulo describiremos un enfoque de selección de variables paso a paso (stepwise) para LDA utilizando el paquete \texttt{klaR} en R.
+
+
+## Criterio de selección
+
+
+### Criterio de selección
+
+En R, el paquete \texttt{klaR} ofrece la función \texttt{stepclass()} que implementa un procedimiento de selección de variables paso a paso para modelos de clasificación, incluyendo LDA.
+
+\bigpause 
+
+El criterio utilizado para evaluar la inclusión o exclusión de variables es la tasa de error de clasificación estimada mediante validación cruzada (por defecto, leave-one-out).
+
+\bigpause 
+
+El objetivo es minimizar esta tasa de error.
+
+###
+
+La función \texttt{stepclass()} permite tres estrategias de selección:
+
+\begin{enumerate} 
+\item \pause \alert{Búsqueda hacia adelante} (\texttt{direction = "forward"}): comienza con un modelo nulo (sólo el intercepto) y añade variables una por una, seleccionando en cada paso la variable que más reduce la tasa de error.
+\item \pause \alert{Búsqueda hacia atrás} (\texttt{direction = "backward"}): comienza con un modelo completo (todas las variables) y elimina variables una por una, seleccionando en cada paso la variable cuya eliminación más reduce la tasa de error. 
+\item \pause \alert{Búsqueda mixta} (\texttt{direction = "both"}): combina ambos enfoques, permitiendo añadir o eliminar variables en cada paso según cuál acción reduzca más la tasa de error.
+\end{enumerate}
+
+
+## Flujo recomendado
+
+### Flujo recomendado
+
+Para llevar a cabo la selección de variables paso a paso en LDA, usualmente se recomienda seguir el siguiente flujo: 
+
+\begin{enumerate} 
+\item \pause \alert{Preparación de datos}
+\item \pause \alert{Aplicación de \texttt{stepclass()}}
+\item \pause \alert{Ajuste del modelo final} 
+\item \pause \alert{Verificación de supuestos}
+\item \pause \alert{Interpretación y reporte}
+\end{enumerate}
+
+## Ejemplo ilustrativo
+
+### Ejemplo ilustrativo
+
+Como ejemplo ilustrativo, consideraremos el conjunto de datos \texttt{penguins} del paquete \texttt{palmerpenguins}, que contiene medidas morfológicas de tres especies de pingüinos: Adelia, Chinstrap y Gentoo.
+
+\bigpause 
+
+Nuestro objetivo es clasificar las especies basándonos en las medidas disponibles, seleccionando las variables más relevantes mediante el método paso a paso.
+
+\bigpause 
+
+
+Los resultados obtenidos son los siguientes:
+
+```{r}
+#| message: false
+#| echo: false
+library(palmerpenguins)
+library(klaR)
+library(MASS)
+library(dplyr)
+library(tidyr)
+
+penguin_data <- penguins %>%
+  dplyr::select(
+    species,
+    bill_length_mm,
+    bill_depth_mm,
+    flipper_length_mm,
+    body_mass_g
+  ) %>%
+  drop_na() %>%
+  mutate(species = droplevels(species)) %>%
+  as.data.frame()
+```
+
+### Resultados obtenidos
+
+```{r}
+#| message: false
+#| warning: false
+#| results: 'hide'
+#| echo: false
+
+# Selección
+step_fwd <- stepclass(
+  species ~ .,
+  data = penguin_data,
+  method = "lda",
+  direction = "forward"
+)
+
+step_bwd <- stepclass(
+  species ~ .,
+  data = penguin_data,
+  method = "lda",
+  direction = "backward"
+)
+
+step_bth <- stepclass(
+  species ~ .,
+  data = penguin_data,
+  method = "lda",
+  direction = "both"
+)
+
+# Fórmulas finales
+form_fwd <- step_fwd$formula
+form_bwd <- step_bwd$formula
+form_bth <- step_bth$formula
+``` 
+
+Las fórmulas finales obtenidas con cada estrategia son:
+```{r}
+#| echo: false
+# Convert formula to latex string
+latex_formula <- function(f) {
+  f_str <- deparse(f)
+
+  # Escape underscores safely
+  f_str <- gsub("_", "\\\\_", f_str)
+
+  # Replace '~' with '\sim'
+  f_str <- gsub("~", "\\\\sim", f_str)
+
+  # Wrap cleanly in math mode
+  latex <- paste0("$", f_str, "$")
+  return(latex)
+}
+
+
+formulas_tbl <- tibble::tibble(
+  Método = c("Forward", "Backward", "Both"),
+  Fórmula = c(
+    latex_formula(form_fwd),
+    latex_formula(form_bwd),
+    latex_formula(form_bth)
+  )
+)
+
+knitr::kable(
+  formulas_tbl,
+  format = "latex",
+  booktabs = TRUE,
+  escape = FALSE
+)
+
+```
+
+### 
+
+
+```{r}
+#| echo: false
+# Ajuste del modelo final
+fit_fwd <- lda(form_fwd, data = penguin_data)
+fit_bwd <- lda(form_bwd, data = penguin_data)
+fit_bth <- lda(form_bth, data = penguin_data)
+```
+
+```{r} 
+#| echo: false
+# Predictions
+pred_fwd <- predict(fit_fwd)$class
+pred_bwd <- predict(fit_bwd)$class
+pred_bth <- predict(fit_bth)$class
+
+# Accuracy
+acc_fwd <- mean(pred_fwd == penguin_data$species)
+acc_bwd <- mean(pred_bwd == penguin_data$species)
+acc_bth <- mean(pred_bth == penguin_data$species)
+
+# Confusion matrices
+cm_fwd <- table(Verdadero = penguin_data$species, Predicción = pred_fwd)
+cm_fwd <- as.data.frame.matrix(cm_fwd)
+cm_fwd <- tibble::rownames_to_column(cm_fwd, var = " ")
+names(cm_fwd)[1] <- "Verdadero \\ Predicción"
+
+cm_bwd <- table(Verdadero = penguin_data$species, Predicción = pred_bwd)
+cm_bwd <- as.data.frame.matrix(cm_bwd)
+cm_bwd <- tibble::rownames_to_column(cm_bwd, var = " ")
+names(cm_bwd)[1] <- "Verdadero \\ Predicción"
+
+cm_bth <- table(Verdadero = penguin_data$species, Predicción = pred_bth)
+cm_bth <- as.data.frame.matrix(cm_bth)
+cm_bth <- tibble::rownames_to_column(cm_bth, var = " ")
+names(cm_bth)[1] <- "Verdadero \\ Predicción"
+```
+
+Los resultados para las tasas de exactitud son:
+```{r}
+#| message: false
+#| echo: false
+
+library(kableExtra)
+
+accuracy_tbl <- tibble::tibble(
+  Método = c("Forward", "Backward", "Both"),
+  Exactitud = c(acc_fwd, acc_bwd, acc_bth)
+)
+
+knitr::kable(
+  accuracy_tbl,
+  format = "latex",
+  booktabs = TRUE,
+  digits = 4,
+  caption = "Exactitud de los modelos LDA por método de selección"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+
+
+La matriz de confusión para el método hacia adelante es:
+```{r}
+#| echo: false
+kable(
+  cm_fwd,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Matriz de confusión (Forward)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+La matriz de confusión para el método hacia atrás es:
+```{r}
+#| echo: false
+kable(
+  cm_bwd,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Matriz de confusión (Backward)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+Finalmente, para el método mixto la matriz de confusión es:
+```{r}
+#| echo: false
+kable(
+  cm_bth,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Matriz de confusión (Both)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+### Verificación de supuestos
+
+Es importante verificar los supuestos del modelo LDA con las variables seleccionadas.
+
+\bigpause 
+
+Podemos utilizar pruebas estadísticas y gráficos para evaluar la normalidad multivariada y la homogeneidad de matrices de covarianza.
+
+\bigpause 
+
+Empezaremos por revisar la normalidad multivariada utilizando el test de Mardia.
+```{r}
+#| message: false
+#| echo: false
+library(MVN)
+# Normalidad multivariada
+
+mardia_fwd <- mvn(
+  data = penguin_data %>% dplyr::select(all_of(all.vars(form_fwd)[-1])),
+  mvn_test = "mardia"
+)
+
+mardia_bwd <- mvn(
+  data = penguin_data %>% dplyr::select(all_of(all.vars(form_bwd)[-1])),
+  mvn_test = "mardia"
+)
+
+mardia_bth <- mvn(
+  data = penguin_data %>% dplyr::select(all_of(all.vars(form_bth)[-1])),
+  mvn_test = "mardia"
+)
+
+
+clean_unicode <- function(df) {
+  df[] <- lapply(df, function(x) {
+    # Convert to character (safe for factors/logicals)
+    x <- as.character(x)
+    # Remove all Unicode by transliteration
+    x <- iconv(x, from = "UTF-8", to = "ASCII//TRANSLIT")
+    # Drop remaining weird symbols
+    x <- gsub("[^[:alnum:][:space:].,_\\-]", "", x)
+    x
+  })
+  return(df)
+}
+
+clean_mardia_fwd <- clean_unicode(mardia_fwd$multivariate_normality)
+clean_mardia_bwd <- clean_unicode(mardia_bwd$multivariate_normality)
+clean_mardia_bth <- clean_unicode(mardia_bth$multivariate_normality)
+```
+###
+
+Los resultados del test de Mardia para la selección hacia adelante son:
+```{r}
+#| echo: false
+knitr::kable(
+  clean_mardia_fwd,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Test de Mardia para normalidad multivariada (Forward)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+Para la selección hacia atrás tenemos los siguientes resultados: 
+```{r}
+#| echo: false
+knitr::kable(
+  clean_mardia_bwd,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Test de Mardia para normalidad multivariada (Backward)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+Finalmente, para el método mixto los resultados son: 
+```{r}
+#| echo: false
+knitr::kable(
+  clean_mardia_bth,
+  format = "latex",
+  booktabs = TRUE,
+  caption = "Test de Mardia para normalidad multivariada (Both)"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+###
+Para evaluar la homogeneidad de matrices de covarianza, podemos utilizar la prueba de Box. 
+```{r}
+#| message: false
+#| echo: false
+library(biotools)
+# Homogeneidad de matrices de covarianza
+box_fwd <- boxM(
+  penguin_data %>% dplyr::select(all_of(all.vars(form_fwd)[-1])),
+  penguin_data$species
+)
+
+box_bwd <- boxM(
+  penguin_data %>% dplyr::select(all_of(all.vars(form_bwd)[-1])),
+  penguin_data$species
+)
+
+box_bth <- boxM(
+  penguin_data %>% dplyr::select(all_of(all.vars(form_bth)[-1])),
+  penguin_data$species
+)
+
+box_results <- tibble::tibble(
+  Método = c("Forward", "Backward", "Both"),
+  Estadístico = c(box_fwd$statistic, box_bwd$statistic, box_bth$statistic),
+  `Grados de libertad` = c(
+    box_fwd$parameter,
+    box_bwd$parameter,
+    box_bth$parameter
+  ),
+  `Valor p` = c(box_fwd$p.value, box_bwd$p.value, box_bth$p.value)
+)
+
+knitr::kable(
+  box_results,
+  format = "latex",
+  booktabs = TRUE,
+  digits = 4,
+  caption = "Prueba de Box para homogeneidad de matrices de covarianza"
+) %>%
+  kable_styling(latex_options = "hold_position")
+```
+
+### Interpretación y reporte 
+
+En este ejemplo, hemos aplicado el método de selección de variables paso a paso para LDA utilizando el conjunto de datos de pingüinos.
+
+\bigpause 
+
+Observamos que las diferentes estrategias de selección (hacia adelante, hacia atrás y mixta) pueden conducir a diferentes conjuntos de variables seleccionadas, lo que afecta la exactitud del modelo.
+
+\bigpause 
+
+Una vez seleccionado el modelo final realizamos una evaluación exhaustiva del desempeño y verificamos los supuestos del modelo.
+
+\bigpause 
+
+Notemos que las pruebas de normalidad multivariada y homogeneidad de matrices de covarianza nos proporcionan información valiosa sobre la adecuación del modelo LDA con las variables seleccionadas.
+
+###
+
+En nuestro caso, los supuestos no se cumplen completamente, sin embargo, el modelo sigue siendo útil para la clasificación.
+
+\bigpause 
+
+Finalmente, es crucial documentar todo el proceso de selección y evaluación para asegurar la reproducibilidad y transparencia del análisis.
+
+

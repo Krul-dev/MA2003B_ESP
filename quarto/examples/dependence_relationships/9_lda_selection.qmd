@@ -9,7 +9,7 @@ library(tidymodels)
 library(discrim)
 library(important)
 library(here)
-
+library(krulRutils)
 options(scipen = 999)
 
 lda_data <- read_csv(
@@ -31,15 +31,11 @@ El conjunto de datos contiene ocho variables explicativas cuantitativas y una va
 
 Los datos fueron generados sintéticamente de manera que las primeras cuatro variables contienen información para distinguir entre los grupos, mientras que las últimas cuatro variables son variables de ruido:
 
-$$
-X_1,X_2,X_3,X_4:
-\text{ variables relevantes},
-$$
+$$X_1,X_2,X_3,X_4:
+\text{ variables relevantes},$$
 
-$$
-X_5,X_6,X_7,X_8:
-\text{ variables de ruido}.
-$$
+$$X_5,X_6,X_7,X_8:
+\text{ variables de ruido}.$$
 
 Las probabilidades a priori poblacionales utilizadas para generar los grupos son
 
@@ -89,7 +85,75 @@ lda_train <- training(lda_split)
 lda_test  <- testing(lda_split)
 ```
 
-La selección de variables y el ajuste del modelo se realizan utilizando únicamente los datos de entrenamiento. El conjunto de prueba se mantiene separado hasta la evaluación final.
+Todas las verificaciones de los supuestos y la construcción del modelo se realizan utilizando los datos de entrenamiento. Los datos de prueba se mantienen separados hasta la evaluación final.
+
+## Supuestos del Análisis Discriminante Lineal
+
+El Análisis Discriminante Lineal clásico supone que, dentro de cada grupo,
+
+$$X \mid G=k \sim N_p(\mu_k,\Sigma)$$
+
+donde todos los grupos comparten la misma matriz de covarianzas $\Sigma$.
+
+La independencia de las observaciones generalmente no puede establecerse únicamente a partir de los valores observados; es una propiedad del proceso de generación o muestreo de los datos. En este ejemplo sintético, las observaciones fueron generadas de manera independiente.
+
+### Normalidad multivariada dentro de cada grupo
+
+Aplicamos la prueba de Henze--Zirkler por separado a cada grupo.
+
+```{r}
+#| label: multivariate-normality
+
+normality_results <- lda_train |>
+  group_split(group) |>
+  map_dfr(
+    \(data_group) {
+      current_group <- first(data_group$group)
+
+      result <- MVN::mvn(
+        data = data_group |> dplyr::select(-group),
+        mvn_test = "hz",
+        tidy = TRUE
+      )
+
+      result$multivariate_normality |>
+        mutate(group = current_group, .before = 1)
+    }
+  )
+
+normality_results
+```
+
+Para cada grupo, las hipótesis son
+
+$$H_0:\text{el vector de variables explicativas sigue una distribución normal multivariada}, $$
+
+$$H_1:\text{el vector de variables explicativas no sigue una distribución normal multivariada}. $$
+
+Con un nivel de significancia de $0.05$.
+
+### Igualdad de las matrices de covarianzas
+
+La prueba de Box (M) puede utilizarse para comparar las matrices de covarianzas de los seis grupos.
+
+```{r}
+#| label: box-m
+
+box_m_result <- biotools::boxM(
+  lda_train |> dplyr::select(starts_with("x")),
+  lda_train$group
+)
+
+box_m_result
+```
+
+Las hipótesis de la prueba de Box son
+
+$$H_0:\Sigma_A=\Sigma_B=\Sigma_C=\Sigma_D=\Sigma_E=\Sigma_F$$
+
+contra la alternativa de que al menos una matriz de covarianzas poblacional es diferente.
+
+Con un nivel de significancia de $0.05$.
 
 ## Selección de variables mediante ANOVA
 
@@ -97,8 +161,7 @@ Para cada variable explicativa $X_j$ realizamos un ANOVA de una vía para compar
 
 Las hipótesis son
 
-$$
-H_0:
+$$H_0:
 \mu_{Aj}
 =
 \mu_{Bj}
@@ -109,15 +172,12 @@ H_0:
 =
 \mu_{Ej}
 =
-\mu_{Fj},
-$$
+\mu_{Fj},$$
 
 contra
 
-$$
-H_1:
-\text{al menos una de las medias es diferente}.
-$$
+$$H_1:
+\text{al menos una de las medias es diferente}.$$
 
 Si el valor $p$ es menor que $0.05$, consideramos que existe evidencia de que la variable contiene información para distinguir entre los grupos y conservamos la variable.
 
@@ -138,21 +198,9 @@ lda_recipe <- recipe(
 
 El paquete `important` utiliza internamente la transformación
 
-$$
--\log_{10}(p)
-$$
+$$-\log_{10}(p)$$
 
-para las puntuaciones basadas en valores $p$. Por esta razón, la condición
-
-```r
-aov_pval >= -log10(0.05)
-```
-
-es equivalente al criterio usual
-
-$$
-p \leq 0.05.
-$$
+para las puntuaciones basadas en valores $p$. Por esta razón, la condición $$\text{aov\_pval} >= -\log_{10}(0.05)$$ es equivalente al criterio usual $$p \leq 0.05$$
 
 ### Variables seleccionadas
 
@@ -192,18 +240,6 @@ selected_variables <- selection_results |>
 selected_variables
 ```
 
-Como los datos fueron generados sintéticamente, conocemos de antemano cuáles variables contienen información discriminante. Esperamos que el procedimiento conserve
-
-$$
-X_1,X_2,X_3,X_4
-$$
-
-y elimine
-
-$$
-X_5,X_6,X_7,X_8.
-$$
-
 ## Modelo de Análisis Discriminante Lineal
 
 Definimos ahora el modelo de Análisis Discriminante Lineal utilizando el motor `MASS`.
@@ -226,8 +262,6 @@ Construimos un workflow que combina la receta de selección con el modelo LDA.
 lda_workflow <- workflow() |>
   add_recipe(lda_recipe) |>
   add_model(lda_spec)
-
-lda_workflow
 ```
 
 La selección de variables forma parte del workflow. Por lo tanto, cada vez que se ajusta el workflow, la selección se estima utilizando únicamente los datos disponibles para ese ajuste.
@@ -288,8 +322,6 @@ final_lda_fit <- lda_workflow |>
   fit(
     data = lda_train
   )
-
-final_lda_fit
 ```
 
 Podemos examinar la receta estimada dentro del modelo final para verificar las variables seleccionadas.
@@ -318,13 +350,11 @@ Una vez eliminadas las variables de ruido, el modelo final utiliza cuatro variab
 
 Con $K=6$ grupos y $p=4$ variables seleccionadas, el número máximo de funciones discriminantes lineales es
 
-$$
-\min(p,K-1)
+$$\min(p,K-1)
 =
 \min(4,5)
 =
-4.
-$$
+4.$$
 
 Podemos extraer el modelo subyacente de `MASS::lda()` para examinar los coeficientes discriminantes.
 
@@ -364,7 +394,7 @@ lda_scores
 Las primeras dos direcciones discriminantes proporcionan una representación bidimensional del modelo reducido.
 
 ```{r}
-#| fig-cap: "Observaciones de entrenamiento proyectadas sobre las primeras dos direcciones discriminantes lineales después de la selección de variables."
+#| fig-cap: "Observaciones de entrenamiento proyectadas sobre las primeras dos direcciones discriminantes lineales."
 #| fig-width: 12
 #| fig-height: 6
 
@@ -380,11 +410,20 @@ ggplot(
     alpha = 0.9,
     size = 2
   ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     x = "Primer discriminante lineal",
     y = "Segundo discriminante lineal",
     color = "Grupo"
-  )
+  ) +
+  theme_krul()
 ```
 
 ## Evaluación final con los datos de prueba
@@ -471,11 +510,13 @@ En este ejemplo utilizamos selección supervisada de variables antes de ajustar 
 
 El procedimiento puede resumirse de la siguiente manera:
 
-1. Separar los datos en entrenamiento y prueba.
-2. Para cada predictor, comparar sus medias entre los grupos mediante ANOVA.
-3. Conservar las variables para las cuales existe evidencia de diferencias entre las medias de los grupos.
-4. Incorporar la selección dentro de una receta de `tidymodels`.
-5. Ajustar el modelo LDA utilizando únicamente las variables seleccionadas.
-6. Estimar el desempeño del procedimiento completo mediante validación cruzada.
-7. Ajustar el modelo final con todos los datos de entrenamiento.
-8. Evaluar el modelo final una sola vez sobre el conjunto de prueba reservado.
+1.  Separar los datos en entrenamiento y prueba.
+2.  Verificar la normalidad multivariada dentro de cada grupo, usando los datos de entrenamiento.
+3.  Verificar la igualdad de las matrices de covarianzas de los grupos, usando los datos de entrenamiento.
+4.  Para cada predictor, comparar sus medias entre los grupos mediante ANOVA.
+5.  Conservar las variables para las cuales existe evidencia de diferencias entre las medias de los grupos.
+6.  Incorporar la selección dentro de una receta de `tidymodels`.
+7.  Ajustar el modelo LDA utilizando únicamente las variables seleccionadas y los datos de entrenamiento.
+8.  Examinar las funciones discriminantes resultantes.
+9.  Estimar el desempeño del procedimiento completo mediante validación cruzada.
+10. Evaluar el modelo final sobre el conjunto de prueba reservado.
