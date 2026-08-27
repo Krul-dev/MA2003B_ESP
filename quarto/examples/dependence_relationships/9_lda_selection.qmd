@@ -10,6 +10,9 @@ library(discrim)
 library(important)
 library(here)
 library(krulRutils)
+library(latex2exp)
+library(patchwork)
+
 options(scipen = 999)
 
 lda_data <- read_csv(
@@ -240,6 +243,246 @@ selected_variables <- selection_results |>
 selected_variables
 ```
 
+```{r}
+#| label: individual-variables-histogram
+#| fig-width: 12
+#| fig-height: 12
+#| fig-cap: "Histogramas de los grupos correspondientes a cada una de las variables"
+
+lda_data_X1_plt <- lda_data |>
+  ggplot(aes(x = X1, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4,
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{1}$"),
+    x = TeX("$X_{1}$"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X2_plt <- lda_data |>
+  ggplot(aes(x = X1, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) + 
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{2}$"),
+    x = TeX("$X_{2}$"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X3_plt <- lda_data |>
+  ggplot(aes(x = X3, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{3}$"),
+    x = TeX("$X_{3}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+  
+lda_data_X4_plt <- lda_data |>
+  ggplot(aes(x = X4, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{4}$"),
+    x = TeX("$X_{4}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X5_plt <- lda_data |>
+  ggplot(aes(x = X5, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{5}$"),
+    x = TeX("$X_{5}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X6_plt <- lda_data |>
+  ggplot(aes(x = X6, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{6}$"),
+    x = TeX("$X_{6}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X7_plt <- lda_data |>
+  ggplot(aes(x = X7, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{7}$"),
+    x = TeX("$X_{7}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_X8_plt <- lda_data |>
+  ggplot(aes(x = X8, fill = group)) + 
+  geom_histogram(
+    position = "identity",
+    bins = 30,
+    color = "black",
+    alpha = 0.4
+  ) +
+  c_scale_fill(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"    
+  ) +
+  coord_cartesian(
+    xlim = c(-5,5)
+  ) +
+  labs(
+    title = TeX("Histograma de $X_{8}$"),
+    x = TeX("$X_{8}"),
+    y = "",
+    fill = "Grupo"
+  ) +
+  theme_krul()
+
+lda_data_combined_histogram_plt <- 
+  lda_data_X1_plt + 
+  lda_data_X5_plt +
+  lda_data_X2_plt +
+  lda_data_X6_plt +
+  lda_data_X3_plt +
+  lda_data_X7_plt +
+  lda_data_X4_plt +
+  lda_data_X8_plt +
+  plot_layout(ncol = 2) + 
+  plot_annotation(
+    title = "Comparación de los histogramas de todas las variables",
+    theme = theme(plot.title = element_text(size = 24, face = "bold"))
+  )
+
+lda_data_combined_histogram_plt
+```
+
 ## Modelo de Análisis Discriminante Lineal
 
 Definimos ahora el modelo de Análisis Discriminante Lineal utilizando el motor `MASS`.
@@ -410,7 +653,7 @@ ggplot(
     alpha = 0.9,
     size = 2
   ) +
-  c_scale_color(
+  c_scale_fill(
     "C red", 
     "C yellow", 
     "C green",
