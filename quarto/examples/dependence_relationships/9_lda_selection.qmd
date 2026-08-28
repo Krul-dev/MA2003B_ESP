@@ -249,7 +249,7 @@ La siguientes gráficas nos muestran el comportamiento de nuestros datos en cada
 #| label: individual-variables-histogram
 #| fig-width: 12
 #| fig-height: 12
-#| fig-cap: "Histogramas de los grupos correspondientes a cada una de las variables"
+#| fig-cap: "Histogramas de los grupos correspondientes a cada una de las variables. Notemos que las variables $X_1$, $X_2$, $X_3$ y $X_4$ muestran diferencias entre las medias de los distintos grupos, mientras que las variables $X_5$, $X_6$, $X_7$ y $X_8$ no muestran diferencias evidentes entre las medias correspondientes."
 
 means1_tbl = lda_data |>
   group_by(group) |>
