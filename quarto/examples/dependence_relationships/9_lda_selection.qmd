@@ -243,11 +243,45 @@ selected_variables <- selection_results |>
 selected_variables
 ```
 
+La siguientes gráficas nos muestran el comportamiento de nuestros datos en cada una de las variables.
+
 ```{r}
 #| label: individual-variables-histogram
 #| fig-width: 12
 #| fig-height: 12
 #| fig-cap: "Histogramas de los grupos correspondientes a cada una de las variables"
+
+means1_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X1))
+
+means2_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X2))
+
+means3_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X3))
+
+means4_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X4))
+
+means5_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X5))
+
+means6_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X6))
+
+means7_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X7))
+
+means8_tbl = lda_data |>
+  group_by(group) |>
+  summarise(mean = mean(X8))
 
 lda_data_X1_plt <- lda_data |>
   ggplot(aes(x = X1, fill = group)) + 
@@ -268,16 +302,31 @@ lda_data_X1_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means1_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{1}$"),
     x = TeX("$X_{1}$"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
 lda_data_X2_plt <- lda_data |>
-  ggplot(aes(x = X1, fill = group)) + 
+  ggplot(aes(x = X2, fill = group)) + 
   geom_histogram(
     position = "identity",
     bins = 30,
@@ -295,11 +344,26 @@ lda_data_X2_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means2_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{2}$"),
     x = TeX("$X_{2}$"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -322,11 +386,26 @@ lda_data_X3_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means3_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{3}$"),
     x = TeX("$X_{3}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
   
@@ -349,11 +428,26 @@ lda_data_X4_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means4_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{4}$"),
     x = TeX("$X_{4}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -376,11 +470,26 @@ lda_data_X5_plt <- lda_data |>
     "C violet",
     "C magenta"    
   ) +
+  geom_vline(
+    data = means5_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{5}$"),
     x = TeX("$X_{5}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -403,11 +512,26 @@ lda_data_X6_plt <- lda_data |>
     "C violet",
     "C magenta"    
   ) +
+  geom_vline(
+    data = means6_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{6}$"),
     x = TeX("$X_{6}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -430,11 +554,26 @@ lda_data_X7_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means7_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{7}$"),
     x = TeX("$X_{7}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -457,11 +596,26 @@ lda_data_X8_plt <- lda_data |>
   coord_cartesian(
     xlim = c(-5,5)
   ) +
+  geom_vline(
+    data = means8_tbl,
+    aes(xintercept = mean, color = group),
+    linetype = "dashed",
+    linewidth = 1
+  ) +
+  c_scale_color(
+    "C red", 
+    "C yellow", 
+    "C green",
+    "C blue",
+    "C violet",
+    "C magenta"
+  ) +
   labs(
     title = TeX("Histograma de $X_{8}$"),
     x = TeX("$X_{8}"),
     y = "",
-    fill = "Grupo"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 
@@ -653,7 +807,7 @@ ggplot(
     alpha = 0.9,
     size = 2
   ) +
-  c_scale_fill(
+  c_scale_color(
     "C red", 
     "C yellow", 
     "C green",
