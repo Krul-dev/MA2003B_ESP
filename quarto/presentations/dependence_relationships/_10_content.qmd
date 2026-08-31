@@ -257,13 +257,13 @@ sim_tbl <- tibble(
 
 # Polígonos para sombrear regiones
 region_tbl <- tribble(
-  ~region,  ~x1, ~x2,
-  "Grupo 1", -1.5,  1.5,
-  "Grupo 1",  1.5, -1.5,
-  "Grupo 1",  1.5,  1.5,
+  ~region, ~x1, ~x2,
+  "Grupo 1", -1.5, 1.5,
+  "Grupo 1", 1.5, -1.5,
+  "Grupo 1", 1.5, 1.5,
   "Grupo 0", -1.5, -1.5,
-  "Grupo 0",  1.5, -1.5,
-  "Grupo 0", -1.5,  1.5
+  "Grupo 0", 1.5, -1.5,
+  "Grupo 0", -1.5, 1.5
 )
 
 ggplot() +
@@ -291,8 +291,8 @@ ggplot() +
     title = "Ejemplo del clasificador logístico",
     x = TeX("$X_{0 \\, 1}$"),
     y = TeX("$X_{0 \\, 2}$"),
-    fill = "Región",
-    color = "Observación"
+    fill = "Grupo",
+    color = "Grupo"
   ) +
   theme_krul()
 ```
