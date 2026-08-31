@@ -1,0 +1,15 @@
+# El modelo logístico
+
+En el método de regresión logística, buscamos clasificar las observaciones dadas en dos categorías (usualmente etiquetadas como 0 y 1) basándonos en una o más variables predictoras. A diferencia de la regresión lineal, que predice valores continuos, la regresión logística predice la probabilidad de que una observación pertenezca a una categoría específica. Una vez que hemos determinado estas probabilidades, podemos utilizar el teorema de clasificación de Bayes para asignar cada observación a la categoría más probable. Notemos que el objetivo principal de este método es similar al del Análisis Discriminante Lineal (LDA), pero la regresión logística no asume que las variables predictoras sigan una distribución normal, lo que la hace más flexible en ciertos contextos.
+
+## El clasificador logístico
+
+Supongamos que tenemos una variable de respuesta $Y_{0}$ que puede tomar solamente dos valores. (Usualmente, estos valores son 0 y 1.) Supongamos además que la relación de esta variable con un vector de variables predictoras $$X_{0} = \begin{bmatrix}
+X_{0\, 1} \\ 
+X_{0\, 2} \\ 
+\vdots \\
+X_{0\, p} 
+\end{bmatrix}$$ está dada por la condición $$Y_{0}|(X_{0} = x_{0}) \sim \text{Bernoulli}(p)$$ donde $$p = P(Y_{0} = 1 | X_{0} = x_{0})$$ En el modelo de regresión logística, suponemos que el logit de $p$ depende linealmente de las variables predictoras, es decir, $$z = \log\left(\frac{p}{1-p}\right) = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}$$ para algunos parámetros $b_{0}, b_{1}, \ldots, b_{p}$. Usando la función logística, podemos expresar $p$ en términos de las variables predictoras como $$p = h(z) =  \frac{1}{1 + e^{-(b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p})}} $$ Notemos que el cociente $$\frac{p}{1-p} = e^{b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}} $$ conocido como la *oportunidad* o *momio* (también conocido como *odds* en inglés) satisface la siguiente condición: por cada unidad que aumente la variable predictora $X_{0\, j}$ (manteniendo las demás variables constantes), la oportunidad se multiplica por un factor de $e^{b_{j}}$. Esta propiedad hace que la regresión logística sea especialmente útil para interpretar el impacto de cada variable predictora en la probabilidad del evento de interés.
+
+Para definir el *clasificador logístico*, fijamos un umbral de probabilidad $\tau \in (0, 1)$. Entonces, asignamos una observación al grupo 1 si la probabilidad estimada $p$ es mayor o igual a $\tau$, y al grupo 0 en caso contrario. En la práctica, un valor comúnmente utilizado para $\tau$ es 0.5, lo que significa que asignamos una observación al grupo 1 si la probabilidad estimada de pertenecer a ese grupo es al menos del $50\%$. Sin embargo, este umbral puede ajustarse según las necesidades específicas del análisis o las consecuencias de los errores de clasificación. Notemos además que en este caso, la frontera de decisión está dada por $$ 
+\log \bigg(\frac{\tau}{1-\tau}\bigg) = 0 = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}$$

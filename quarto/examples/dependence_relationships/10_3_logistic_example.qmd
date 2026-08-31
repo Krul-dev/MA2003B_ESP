@@ -1,0 +1,227 @@
+# Ejemplo del clasificador logístico
+
+Recordemos que en el modelo logístico suponemos que tenemos una variable de respuesta binaria $Y_{0}$ y un vector de variables predictoras $$X_{0} = \begin{bmatrix}
+X_{0\, 1} \\ 
+X_{0\, 2} \\ 
+\vdots \\
+X_{0\, p} 
+\end{bmatrix}$$ que están relacionadas por la condición $$Y_{0}|(X_{0} = x_{0}) \sim \text{Bernoulli}(p)$$ donde $$p = P(Y_{0} = 1 | X_{0} = x_{0}) =  \frac{1}{1 + e^{-(b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p})}}$$Para este ejemplo, consideremos el caso en el que tenemos dos variables predictoras ($p=2$) con parámetros $b_{0} = 0$, $b_{1} = 4$ y $b_{2} = 4$. En este caso, la frontera de decisión para un umbral $\tau = 0.5$ está dada por la ecuación $$\begin{aligned}
+0 + 4 \cdot x_{0\, 1} + 4 \cdot x_{0\, 2} =  & 0 \\
+x_{0\, 2} = & - x_{0\, 1}
+\end{aligned}$$Para visualizar esta frontera, generaremos 1,000 observaciones para $x_{1}$ y $x_{2}$ con distribución uniforme en $[-1, 1]$ y usaremos el modelo logístico para clasificarlas.
+
+```{r}
+#| fig-cap: "Muestra simulada con el clasificador logístico. Se usan 1,000 observaciones con $X_{0\\, 1}$ y $X_{0\\, 2}$ uniformes en $[-1, 1]$. La frontera de decisión $X_{0\\, 2} = -X_{0\\, 1}$ aparece en negro; y las regiones correspondientes aparecen sombreadas. Notemos que la clasificación no es perfecta, pero el número de errores decrece de manera exponencial a medida que nos alejamos de la frontera de decisión"
+#| fig-width: 12
+#| fig-height: 6
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(krulRutils)
+library(latex2exp)
+library(yardstick)
+
+set.seed(123)
+
+# Parámetros del modelo
+b0 <- 0
+b1 <- 4
+b2 <- 4
+tau <- 0.5
+
+# Muestra simulada
+sim_tbl <- tibble(
+  x1 = runif(1000, min = -1, max = 1),
+  x2 = runif(1000, min = -1, max = 1)
+) %>%
+  mutate(
+    z = b0 + b1 * x1 + b2 * x2,
+    p_hat = 1 / (1 + exp(-z)),
+    grupo = if_else(runif(n()) < p_hat, "Grupo 1", "Grupo 0")
+  )
+
+# Polígonos para sombrear regiones
+region_tbl <- tribble(
+  ~region,  ~x1, ~x2,
+  "Grupo 1", -1.5,  1.5,
+  "Grupo 1",  1.5, -1.5,
+  "Grupo 1",  1.5,  1.5,
+  "Grupo 0", -1.5, -1.5,
+  "Grupo 0",  1.5, -1.5,
+  "Grupo 0", -1.5,  1.5
+)
+
+ggplot() +
+  geom_polygon(
+    data = region_tbl,
+    aes(x = x1, y = x2, fill = region, group = region),
+    alpha = 0.5
+  ) +
+  geom_point(
+    data = sim_tbl,
+    aes(x = x1, y = x2, color = grupo),
+    alpha = 1,
+    size = 2
+  ) +
+  geom_abline(
+    intercept = 0,
+    slope = -1,
+    color = c_pal("C red"),
+    linewidth = 1
+  ) +
+  c_scale_color("C blue", "C green", name = "Grupo") +
+  c_scale_fill("C blue", "C green", name = "Región") +
+  coord_cartesian(xlim = c(-1, 1), ylim = c(-1, 1)) +
+  labs(
+    title = "Ejemplo del clasificador logístico",
+    x = TeX("$X_{0 \\, 1}$"),
+    y = TeX("$X_{0 \\, 2}$"),
+    fill = "Grupo",
+    color = "Grupo"
+  ) +
+  theme_krul()
+```
+
+Notemos que la clasificación no es perfecta, sin embargo el número de errores decrece de manera exponencial a medida que nos alejamos de la frontera de decisión. Si calculamos la matriz de confusión para este clasificador logístico simulado, obtenemos:
+
+```{r}
+#| tbl-cap: "Matriz de confusión para el clasificador logístico simulado."
+#| message: false
+#| warning: false
+
+confusion_tbl <- sim_tbl |>
+  mutate(pred = if_else(p_hat >= tau, "Grupo 1", "Grupo 0")) |>
+  count(grupo, pred, name = "n") |>
+  pivot_wider(
+    names_from = pred,
+    values_from = n,
+    values_fill = 0
+  ) |>
+  rename(
+    `Grupo real` = grupo
+  )
+
+confusion_tbl |>
+  knitr::kable(
+    align = "ccc",
+    col.names = c("Grupo real", "Grupo 0", "Grupo 1")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c(
+      "striped",
+      "hover",
+      "condensed"
+    ),
+    full_width = FALSE,
+    position = "center"
+  ) |>
+  kableExtra::add_header_above(
+    c(" " = 1, "Grupo predicho" = 2)
+  )
+```
+
+Las métricas de este clasificador asociadas a este conjunto de datos son:
+
+```{r}
+#| tbl-cap: "Tabla de métricas del clasificador asociadas al conjunto de datos dado."
+#| message: false
+#| warning: false
+
+metrics_tbl <- sim_tbl |>
+  mutate(
+    pred = if_else(p_hat >= tau, "Grupo 1", "Grupo 0"),
+    grupo = factor(grupo, levels = c("Grupo 0", "Grupo 1")),
+    pred = factor(pred, levels = c("Grupo 0", "Grupo 1"))
+  ) |>
+  yardstick::metric_set(
+    accuracy,
+    sens,
+    spec,
+    precision,
+    npv,
+    f_meas
+  )(
+    truth = grupo,
+    estimate = pred,
+    event_level = "second"
+  ) |>
+  select(.metric, .estimate) |>
+  mutate(
+    .metric = recode(
+      .metric,
+      accuracy = "Exactitud",
+      sens = "Sensibilidad",
+      spec = "Especificidad",
+      precision = "Precisión",
+      npv = "Valor predictivo negativo",
+      f_meas = "Medida F1"
+    ),
+    .estimate = scales::percent(.estimate, accuracy = 0.1)
+  ) |>
+  rename(
+    Métrica = .metric,
+    Valor = .estimate
+  )
+
+metrics_tbl |>
+  knitr::kable(
+    align = c("l", "c")
+  ) |>
+  kableExtra::kable_styling(
+    bootstrap_options = c(
+      "striped",
+      "hover",
+      "condensed"
+    ),
+    full_width = FALSE,
+    position = "center"
+  ) |>
+  kableExtra::column_spec(
+    1,
+    bold = TRUE
+  )
+```
+
+## Definiciones de las métricas de clasificación
+
+Recordemos que para definir las métricas anteriores, consideramos como **clase positiva** al Grupo 1 y como **clase negativa** al Grupo 0. Denotamos por:
+
+- $VP$ el número de **verdaderos positivos**: observaciones del Grupo 1 clasificadas como Grupo 1.
+- $VN$ el número de **verdaderos negativos**: observaciones del Grupo 0 clasificadas como Grupo 0.
+- $FP$ el número de **falsos positivos**: observaciones del Grupo 0 clasificadas como Grupo 1.
+- $FN$ el número de **falsos negativos**: observaciones del Grupo 1 clasificadas como Grupo 0.
+
+A partir de estas cantidades definimos las siguientes métricas:
+
+- **Exactitud (accuracy):** proporción de observaciones que fueron clasificadas correctamente:
+
+$$\operatorname{Exactitud}
+= \frac{VP + VN}{VP + VN + FP + FN}.$$
+
+- **Sensibilidad (sensitivity, recall):** proporción de observaciones de la clase positiva que fueron clasificadas correctamente como positivas
+
+$$\operatorname{Sensibilidad}
+= \frac{VP}{VP + FN}.$$
+
+- **Especificidad (specificity):** proporción de observaciones de la clase negativa que fueron clasificadas correctamente como negativas
+
+$$\operatorname{Especificidad}
+= \frac{VN}{VN + FP}.$$
+
+- **Precisión (precision, positive predictive value):** proporción de observaciones clasificadas como positivas que realmente pertenecen a la clase positiva $$\operatorname{Precisión}
+  = \frac{VP}{VP + FP}.$$
+
+- **Valor predictivo negativo (negative predictive value):** proporción de observaciones clasificadas como negativas que realmente pertenecen a la clase negativa
+
+$$\operatorname{VPN}
+= \frac{VN}{VN + FN}.$$
+
+- **Medida F1:** media armónica de la precisión y la sensibilidad:
+
+$$F_1
+= 2\frac{\operatorname{Precisión}\operatorname{Sensibilidad}}
+{\operatorname{Precisión}+\operatorname{Sensibilidad}}
+= \frac{2VP}{2VP + FP + FN}.$$
+
+Esta métrica resume en un solo valor el compromiso entre la precisión y la sensibilidad.

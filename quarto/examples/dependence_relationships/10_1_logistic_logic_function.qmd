@@ -1,0 +1,106 @@
+# La función logística y la función logit
+
+Recordemos que la *función logística* está definida como:
+$$  p = h(z) = \frac{1}{1 + e^{-z}}$$
+y proporciona una biyección entre los números reales y el intervalo (0, 1). Dado que las probabilidades de un evento siempre se encuentran en este intervalo, la función logística es ideal para modelar probabilidades.
+
+```{r}
+#| fig-cap: "Gráfica de la función logística. Notemos que esta función establece una biyección entre los números reales y el intervalo (0, 1), lo cual es ideal para modelar probabilidades."
+#| fig-width: 12
+#| fig-height: 6
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(krulRutils)
+library(latex2exp)
+
+# Definición de la función logística
+logistic_function <- function(z) {
+  1 / (1 + exp(-z))
+}
+
+# Ejemplo de uso de la función logística
+z_data <- seq(-10, 10, length.out = 100)
+p_data <- logistic_function(z_data)
+
+logistic_tbl <- tibble(
+  z = z_data,
+  p = p_data
+)
+
+logistic_plot <- logistic_tbl %>%
+  ggplot(aes(x = z, y = p)) +
+  geom_line(
+    color = c_pal("C blue"),
+    linewidth = 1
+  ) +
+  annotate(
+    "text",
+    x = -5, y = 0.3,
+    label = TeX("$p = \\frac{1}{1 + e^{-z}}$"),
+    parse = TRUE,
+    size = 4,
+    color = c_pal("C blue")
+  ) +
+  labs(
+    title = "La función logística",
+    x = TeX("$z$"),
+    y = TeX("$p$")
+  ) +
+  theme_krul()
+
+# Mostramos la gráfica de la función logística
+logistic_plot
+```
+
+Notemos que en la expresión
+$$  p = h(z) = \frac{1}{1 + e^{-z}}$$
+es posible despejar $z$ en términos de $p$. Realizar este despeje nos lleva a la *función logit*, definida como:
+$$z = h^{-1}(p) = \log\left(\frac{p}{1-p}\right)$$
+La función logit transforma probabilidades (valores entre 0 y 1) en valores reales, lo que es útil para modelar relaciones lineales en el contexto de la regresión logística.
+
+```{r}
+#| fig-cap: "Gráfica de la función logit. Notemos que esta función transforma probabilidades (valores entre 0 y 1) en valores reales." 
+#| fig-width: 12
+#| fig-height: 6
+#| message: false
+#| warning: false
+
+# Definición de la función logit
+logit_function <- function(p) {
+  log(p / (1 - p))
+}
+
+# Ejemplo de uso de la función logit
+p_data_logit <- seq(0.01, 0.99, length.out = 100)
+z_data_logit <- logit_function(p_data_logit)
+logit_tbl <- tibble(
+  p = p_data_logit,
+  z = z_data_logit
+)
+
+logit_plt <- logit_tbl %>%
+  ggplot(aes(x = p, y = z)) +
+  geom_line(
+    color = c_pal("C blue"),
+    linewidth = 1
+  ) +
+  annotate(
+    "text",
+    x = 0.7, y = 2,
+    label = TeX("$z = \\log\\left(\\frac{p}{1-p}\\right)$"),
+    parse = TRUE,
+    size = 4,
+    color = c_pal("C blue")
+  ) +
+  labs(
+    title = "La función logit",
+    x = TeX("$p$"),
+    y = TeX("$z$")
+  ) +
+  theme_krul()
+
+# Mostramos la gráfica de la función logit
+logit_plt
+```

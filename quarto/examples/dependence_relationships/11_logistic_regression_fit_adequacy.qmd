@@ -1,10 +1,10 @@
 # Ajuste y adecuación del modelo de regresión logística
 
-Recordemos que el modelo de regresión logística asume que la variable de respuesta $Y_{0}$ está relacionada con el vector de variables explicativas $X_{0} = (X_{0\, 1}, X_{0\, 2}, \ldots, X_{0\, p})$ a través de la siguiente distribución condicional: $$
-Y_{0} | (X_{0} = x_{0}) \sim \text{Bernoulli}(p_{0}),
-$$ donde $$
-\text{logit}(p_{0}) = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}
-$$ para algunos parámetros $b_{0}, b_{1}, \ldots, b_{p}$.
+Recordemos que el modelo de regresión logística asume que la variable de respuesta $Y_{0}$ está relacionada con el vector de variables explicativas $X_{0} = (X_{0\, 1}, X_{0\, 2}, \ldots, X_{0\, p})$ a través de la siguiente distribución condicional:
+$$Y_{0} | (X_{0} = x_{0}) \sim \text{Bernoulli}(p_{0}),$$
+donde
+$$\text{logit}(p_{0}) = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}$$
+para algunos parámetros $b_{0}, b_{1}, \ldots, b_{p}$.
 
 En estas notas mostraremos como podemos realizar el ajuste y verificar la adecuación de un modelo de regresión logística usando el conjunto de datos `PimaIndiansDiabetes` de la librería `mlbench`
 
