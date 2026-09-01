@@ -1,8 +1,6 @@
 # La función logística y la función logit
 
-Recordemos que la *función logística* está definida como:
-$$  p = h(z) = \frac{1}{1 + e^{-z}}$$
-y proporciona una biyección entre los números reales y el intervalo (0, 1). Dado que las probabilidades de un evento siempre se encuentran en este intervalo, la función logística es ideal para modelar probabilidades.
+Recordemos que la *función logística* está definida como: $$  p = h(z) = \frac{1}{1 + e^{-z}}$$ y proporciona una biyección entre los números reales y el intervalo (0, 1). Dado que las probabilidades de un evento siempre se encuentran en este intervalo, la función logística es ideal para modelar probabilidades.
 
 ```{r}
 #| fig-cap: "Gráfica de la función logística. Notemos que esta función establece una biyección entre los números reales y el intervalo (0, 1), lo cual es ideal para modelar probabilidades."
@@ -54,11 +52,7 @@ logistic_plot <- logistic_tbl %>%
 logistic_plot
 ```
 
-Notemos que en la expresión
-$$  p = h(z) = \frac{1}{1 + e^{-z}}$$
-es posible despejar $z$ en términos de $p$. Realizar este despeje nos lleva a la *función logit*, definida como:
-$$z = h^{-1}(p) = \log\left(\frac{p}{1-p}\right)$$
-La función logit transforma probabilidades (valores entre 0 y 1) en valores reales, lo que es útil para modelar relaciones lineales en el contexto de la regresión logística.
+Notemos que en la expresión $$  p = h(z) = \frac{1}{1 + e^{-z}}$$ es posible despejar $z$ en términos de $p$. Realizar este despeje nos lleva a la *función logit*, definida como: $$z = h^{-1}(p) = \log\left(\frac{p}{1-p}\right)$$ La función logit transforma probabilidades (valores entre 0 y 1) en valores reales, lo que es útil para modelar relaciones lineales en el contexto de la regresión logística.
 
 ```{r}
 #| fig-cap: "Gráfica de la función logit. Notemos que esta función transforma probabilidades (valores entre 0 y 1) en valores reales." 

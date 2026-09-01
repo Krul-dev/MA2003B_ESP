@@ -1,113 +1,156 @@
 # Ajuste y adecuación del modelo de regresión logística
 
-Recordemos que el modelo de regresión logística asume que la variable de respuesta $Y_{0}$ está relacionada con el vector de variables explicativas $X_{0} = (X_{0\, 1}, X_{0\, 2}, \ldots, X_{0\, p})$ a través de la siguiente distribución condicional:
-$$Y_{0} | (X_{0} = x_{0}) \sim \text{Bernoulli}(p_{0}),$$
-donde
-$$\text{logit}(p_{0}) = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}$$
-para algunos parámetros $b_{0}, b_{1}, \ldots, b_{p}$.
+Recordemos que el modelo de regresión logística asume que la variable de respuesta $Y_{0}$ está relacionada con el vector de variables explicativas $X_{0} = (X_{0\, 1}, X_{0\, 2}, \ldots, X_{0\, p})$ a través de la siguiente distribución condicional: $$Y_{0} | (X_{0} = x_{0}) \sim \text{Bernoulli}(p_{0}),$$ donde $$\text{logit}(p_{0}) = b_{0} + b_{1} x_{0\, 1} + b_{2} x_{0\, 2} + \cdots + b_{p} x_{0\, p}$$ para algunos parámetros $b_{0}, b_{1}, \ldots, b_{p}$.
 
-En estas notas mostraremos como podemos realizar el ajuste y verificar la adecuación de un modelo de regresión logística usando el conjunto de datos `PimaIndiansDiabetes` de la librería `mlbench`
+A continuación mostraremos como podemos realizar el ajuste y verificar la adecuación de un modelo de regresión logística usando el conjunto de datos `PimaIndiansDiabetes` de la librería `mlbench`.
 
 ## Ajuste del modelo
 
-Para ajustar el modelo utilizaremos la función `glm` (*generalized linear model*) con el argumento `family = binomial` como se muestra a continuación:
+Para ajustar el modelo utilizaremos `tidymodels`. Primero definimos un modelo de regresión logística con `logistic_reg()` y seleccionamos `glm` como motor de ajuste.
 
 ```{r}
+#| message: false
+#| warning: false
+
 library(tidyverse)
-library(MASS)
+library(tidymodels)
 library(ResourceSelection)
-library(caret)
-library(pROC)
 library(mlbench)
 library(krulRutils)
+
 data(PimaIndiansDiabetes)
 
-PID_tbl <- PimaIndiansDiabetes %>% 
-  mutate(diabetes = if_else(diabetes=="pos", 1, 0))  # numeric response
+PID_tbl <- PimaIndiansDiabetes |>
+  mutate(
+    diabetes = factor(diabetes, levels = c("pos", "neg"))
+  )
 
-PID_logistic_model <- glm(
-  diabetes ~ glucose + mass + age + pressure,
-  data = PID_tbl,
-  family = binomial
-)
+PID_logistic_spec <- logistic_reg() |>
+  set_engine("glm")
 
-summary(PID_logistic_model)
+PID_logistic_model <- PID_logistic_spec |>
+  fit(
+    diabetes ~ glucose + mass + age + pressure,
+    data = PID_tbl
+  )
+
+PID_logistic_model |>
+  tidy()
 ```
 
 ## Verificación de la adecuación del modelo
 
-Para verificar la adecuación del modelo, llevaremos a cabo las siguientes pruebas:
+Para verificar la adecuación del modelo, llevaremos a cabo las siguientes pruebas.
 
 ### Prueba de razón de verosimilitudes
 
-Esta prueba se puede realizar utilizando la función `anova` con la opción `test = "Chisq"`:
+Para la prueba de razón de verosimilitudes, aplicamos la prueba `anova` al motor que utilizamos para realizar el ajuste con la opción `test = "Chisq"`:
 
 ```{r}
-anova(PID_logistic_model, test = "Chisq")
-
+PID_logistic_model |>
+  extract_fit_engine() |>
+  anova(test = "Chisq") |>
+  tidy()
 ```
 
 ### Bondad de ajuste: Prueba de Hosmer-Lemeshow
 
-Para esta prueba usamos la función `hoslem.test` para comparar los resultados obtenidos contra las probabilidades calculadas.
+Primero calculamos las probabilidades predichas por el modelo. Como el primer nivel de `diabetes` es `"pos"`, la columna `.pred_pos` contiene la probabilidad estimada de presentar diabetes.
 
 ```{r}
+PID_predictions <- PID_logistic_model |>
+  predict(new_data = PID_tbl, type = "prob") |>
+  bind_cols(
+    PID_logistic_model |>
+      predict(new_data = PID_tbl, type = "class")
+  ) |>
+  bind_cols(
+    PID_tbl |>
+      select(diabetes)
+  )
 
-diabetes_data <- PID_tbl %>%
-  pull(diabetes)
+PID_predictions
+```
 
-hoslem.test(diabetes_data, fitted(PID_logistic_model))
+Para la prueba de Hosmer-Lemeshow, `hoslem.test()` requiere que la variable observada esté codificada numéricamente como $0$ y $1$. Por esta razón hacemos esta conversión únicamente para realizar la prueba:
 
+```{r}
+diabetes_data <- PID_predictions |>
+  mutate(
+    diabetes_numeric = if_else(diabetes == "pos", 1, 0)
+  ) |>
+  pull(diabetes_numeric)
+
+hoslem.test(
+  diabetes_data,
+  PID_predictions$.pred_pos
+) |>
+  tidy()
 ```
 
 ### Matriz de confusión
 
-```{r}
+La clase predicha se encuentra en la columna `.pred_class`. Podemos construir directamente la matriz de confusión utilizando `conf_mat()` de `yardstick`:
 
-PID_tbl <- PID_tbl %>%
-  mutate(
-    p_hat = fitted(PID_logistic_model),
-    pred = if_else(p_hat >= 0.5, 1, 0)
+```{r}
+PID_confusion_matrix <- PID_predictions |>
+  conf_mat(
+    truth = diabetes,
+    estimate = .pred_class
   )
 
-diabetes_pred <- PID_tbl %>%
-  pull(pred)
+PID_confusion_matrix
+```
 
-diabetes_prob <- PID_tbl %>%
-  pull(p_hat)
+También podemos obtener las principales métricas de clasificación a partir de la matriz de confusión:
 
-confusionMatrix(
-  factor(diabetes_pred),
-  factor(diabetes_data),
-  positive = "1"
-)
+```{r}
+PID_confusion_matrix |>
+  summary(event_level = "first")
 ```
 
 ### Curvas ROC y AUC
 
+La curva ROC puede calcularse directamente con `roc_curve()` utilizando la probabilidad estimada de la clase positiva:
+
 ```{r}
-roc_obj <- roc(diabetes_data, diabetes_prob)
+PID_roc_tbl <- PID_predictions |>
+  roc_curve(
+    truth = diabetes,
+    .pred_pos,
+    event_level = "first"
+  )
 
-roc_tbl <- tibble(
-  fpr = 1 - roc_obj$specificities,     # false positive rate
-  sensitivity = roc_obj$sensitivities  # true positive rate
-)
+PID_auc <- PID_predictions |>
+  roc_auc(
+    truth = diabetes,
+    .pred_pos,
+    event_level = "first"
+  )
 
-auc_value <- auc(roc_obj)
-
-ggplot(roc_tbl, aes(x = fpr, y = sensitivity)) +
+PID_roc_tbl |>
+  ggplot(aes(x = 1 - specificity, y = sensitivity)) +
   geom_line(color = c_pal("C blue"), linewidth = 1.3) +
-  geom_abline(intercept = 0, slope = 1,
-              linetype = "dashed", linewidth = 0.8, color = "black") +
-  annotate("text", x = 0.65, y = 0.1,
-           label = paste("AUC =", round(auc_value, 3)),
-           size = 5) +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    linetype = "dashed",
+    linewidth = 0.8,
+    color = "black"
+  ) +
+  annotate(
+    "text",
+    x = 0.65,
+    y = 0.1,
+    label = paste("AUC =", round(PID_auc$.estimate, 3)),
+    size = 5
+  ) +
   labs(
     title = "Curva ROC",
-    x = "Proporción de Falsos Positivos (1- Specificidad)",
+    x = "Proporción de Falsos Positivos (1 - Especificidad)",
     y = "Proporción de Verdaderos Positivos (Sensitividad)"
   ) +
   theme_krul()
-auc(roc_obj)
 
+# PID_auc
 ```
