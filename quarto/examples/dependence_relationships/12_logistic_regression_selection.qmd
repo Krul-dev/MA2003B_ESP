@@ -1,0 +1,505 @@
+# Selección de Variables para Regresión Logística
+
+## Datos
+
+Consideraremos el conjunto de datos `PimaIndiansDiabetes`, de la librería `mlbench`, que contiene ocho variables explicativas cuantitativas y una variable respuesta categórica que indica si una paciente presenta o no diabetes.
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(tidymodels)
+library(ResourceSelection)
+library(mlbench)
+library(krulRutils)
+
+options(scipen = 999)
+
+data(PimaIndiansDiabetes)
+
+PID_tbl <- PimaIndiansDiabetes |>
+  mutate(
+    diabetes = factor(
+      diabetes,
+      levels = c("pos", "neg")
+    )
+  )
+
+PID_tbl
+```
+
+La proporción de pacientes con y sin diabetes es:
+
+```{r}
+#\| label: inspect-data
+
+PID_tbl |> count(diabetes) |> mutate( proportion = n / sum(n) )
+```
+
+## Partición de los datos
+
+Reservamos el 20% de las observaciones como conjunto de prueba. La estratificación preserva aproximadamente las proporciones de las dos clases en ambas particiones.
+
+```{r}
+#| label: data-split
+
+set.seed(123)
+
+PID_split <- initial_split(
+  PID_tbl,
+  prop = 0.80,
+  strata = diabetes
+)
+
+PID_train <- training(PID_split)
+PID_test  <- testing(PID_split)
+
+PID_train |>
+  count(diabetes) |>
+  mutate(
+    proportion = n / sum(n)
+  )
+
+PID_test |>
+  count(diabetes) |>
+  mutate(
+    proportion = n / sum(n)
+  )
+```
+
+La selección de variables y la construcción del modelo se realizan utilizando únicamente los datos de entrenamiento. Los datos de prueba se mantienen separados hasta la evaluación final.
+
+## Selección de variables mediante pruebas de razón de verosimilitudes
+
+Consideremos un predictor $X_j$. Para determinar si existe evidencia de que esta variable está asociada con la respuesta, comparamos dos modelos de regresión logística.
+
+El **modelo reducido** contiene únicamente el intercepto:
+
+$$\operatorname{logit}(p)=\beta_0.$$
+
+El **modelo completo** incorpora el predictor $X_j$:
+
+$$\operatorname{logit}(p)=\beta_0+\beta_jX_j.$$
+
+La prueba de razón de verosimilitudes compara las hipótesis
+
+$$H_0:\beta_j=0,$$
+
+contra
+
+$$H_1:\beta_j\neq0.$$
+
+Si el valor $p$ es menor o igual que un valor de $\alpha$ previamente determinado, entonces consideramos que existe evidencia de que el predictor está asociado con la variable respuesta y conservamos la variable.
+
+Este procedimiento es análogo al utilizado anteriormente para el Análisis Discriminante Lineal: en aquel caso se utilizó un ANOVA para determinar si la media de cada predictor era diferente entre los grupos; aquí utilizamos una prueba de razón de verosimilitudes para determinar si cada predictor contribuye individualmente a explicar la respuesta binaria.
+
+### Implementación en una receta de `tidymodels`
+
+Para incorporar la selección dentro del proceso de ajuste utilizaremos un paso auxiliar llamado `step_logistic_lrt()`. Este paso ajusta, para cada predictor, el modelo reducido y el modelo con un solo predictor, calcula la prueba de razón de verosimilitudes y elimina las variables cuyo valor $p$ sea mayor que el nivel de significancia especificado. Para este ejemplo en particular, utilizaremos un valor de $\alpha = 0.05$.
+
+```{r}
+#| label: logistic-lrt-step
+#| echo: false
+
+alpha <- 0.05
+response_variable <- "diabetes"
+
+predictor_names <- setdiff(
+  names(PID_train),
+  response_variable
+)
+
+null_formula <- reformulate(
+  character(0),
+  response = response_variable
+)
+
+null_model <- glm(
+  null_formula,
+  data = PID_train,
+  family = binomial()
+)
+
+lrt_results <- map_dfr(
+  predictor_names,
+  \(predictor) {
+    
+    full_formula <- reformulate(
+      predictor,
+      response = response_variable
+    )
+    
+    full_model <- glm(
+      full_formula,
+      data = PID_train,
+      family = binomial()
+    )
+    
+    lrt <- anova(
+      null_model,
+      full_model,
+      test = "Chisq"
+    )
+    
+    tibble(
+      predictor = predictor,
+      p_value = lrt$`Pr(>Chi)`[2]
+    )
+  }
+)
+```
+
+Definimos ahora la receta de selección.
+
+```{r}
+#| label: logistic-recipe
+
+PID_logistic_formula <- reformulate(
+  selected_predictors,
+  response = response_variable
+)
+
+PID_logistic_recipe <- recipe(
+  PID_logistic_formula,
+  data = PID_train
+)
+```
+
+Podemos ahora extraer las variables seleccionadas:
+
+```{r}
+#| label: inspect-selection
+
+selected_predictors <- lrt_results |>
+  filter(p_value <= alpha) |>
+  pull(predictor)
+
+selected_predictors
+```
+
+## Modelo de Regresión Logística
+
+Definimos el modelo de regresión logística utilizando `glm` como motor de ajuste.
+
+```{r}
+#| label: logistic-specification
+
+PID_logistic_spec <- logistic_reg() |>
+  set_engine("glm")
+```
+
+Construimos un workflow que combina la receta de selección con el modelo de regresión logística.
+
+```{r}
+#| label: logistic-workflow
+
+PID_logistic_workflow <- workflow() |>
+  add_recipe(PID_logistic_recipe) |>
+  add_model(PID_logistic_spec)
+```
+
+La selección de variables forma parte del workflow. Por lo tanto, cada vez que se ajusta el workflow, las pruebas de razón de verosimilitudes se calculan utilizando únicamente los datos disponibles para ese ajuste.
+
+## Validación cruzada
+
+Estimamos el desempeño predictivo mediante validación cruzada estratificada de 10 particiones sobre el conjunto de entrenamiento.
+
+```{r}
+#| label: cross-validation
+
+set.seed(123)
+
+PID_folds <- vfold_cv(
+  PID_train,
+  v = 10,
+  strata = diabetes
+)
+
+PID_resamples <- fit_resamples(
+  PID_logistic_workflow,
+  resamples = PID_folds,
+  metrics = metric_set(
+    accuracy,
+    roc_auc
+  ),
+  control = control_resamples(
+    save_pred = TRUE
+  )
+)
+
+collect_metrics(PID_resamples)
+```
+
+Debido a que la selección está incluida dentro de la receta, el procedimiento se vuelve a estimar dentro de cada partición de la validación cruzada utilizando solamente las observaciones de entrenamiento correspondientes. De esta manera, las observaciones utilizadas para validar cada ajuste no participan en la selección de variables de ese ajuste.
+
+También podemos examinar la exactitud obtenida en cada pliegue.
+
+```{r}
+#| label: fold-accuracy
+
+collect_predictions(PID_resamples) |>
+  group_by(id) |>
+  accuracy(
+    truth = diabetes,
+    estimate = .pred_class
+  )
+```
+
+## Ajuste del modelo final
+
+Después de estimar el desempeño predictivo mediante validación cruzada, ajustamos el workflow final utilizando todo el conjunto de entrenamiento.
+
+```{r}
+#| label: final-fit
+
+final_PID_logistic_fit <- PID_logistic_workflow |>
+  fit(
+    data = PID_train
+  )
+```
+
+Podemos examinar la receta estimada dentro del modelo final para verificar las variables seleccionadas.
+
+```{r}
+#| label: final-selected-variables
+
+lrt_results |>
+  mutate(
+    selected = p_value <= alpha
+  ) |>
+  arrange(
+    desc(selected),
+    p_value
+  )
+```
+
+## Coeficientes del modelo reducido
+
+Podemos extraer los coeficientes del modelo logístico final utilizando `tidy()`.
+
+```{r}
+#| label: final-coefficients
+
+final_PID_logistic_fit |>
+  extract_fit_parsnip() |>
+  tidy()
+```
+
+El modelo final tiene la forma
+
+$$\operatorname{logit}(p)
+=
+\beta_0
++
+\beta_1X_1
++
+\cdots
++
+\beta_qX_q,$$
+
+donde $X_1,\ldots,X_q$ representan únicamente las variables conservadas por el procedimiento de selección.
+
+## Adecuación del modelo final
+
+Una vez seleccionado y ajustado el modelo final, podemos aplicar las mismas herramientas de diagnóstico utilizadas anteriormente para regresión logística.
+
+### Prueba de razón de verosimilitudes para el modelo final
+
+```{r}
+#| label: final-likelihood-ratio-tests
+
+final_PID_logistic_fit |>
+  extract_fit_engine() |>
+  anova(test = "Chisq") |>
+  tidy()
+```
+
+Esta tabla analiza la contribución de los términos del modelo final. No debe confundirse con las pruebas univariadas utilizadas durante el procedimiento de selección.
+
+### Probabilidades predichas sobre los datos de entrenamiento
+
+```{r}
+#| label: training-predictions
+
+PID_train_predictions <- final_PID_logistic_fit |>
+  predict(
+    new_data = PID_train,
+    type = "prob"
+  ) |>
+  bind_cols(
+    final_PID_logistic_fit |>
+      predict(
+        new_data = PID_train,
+        type = "class"
+      )
+  ) |>
+  bind_cols(
+    PID_train |>
+      select(diabetes)
+  )
+
+PID_train_predictions
+```
+
+### Bondad de ajuste: Prueba de Hosmer-Lemeshow
+
+Para la prueba de Hosmer-Lemeshow, `hoslem.test()` requiere que la variable observada esté codificada numéricamente como $0$ y $1$. Realizamos esta conversión únicamente para efectuar la prueba.
+
+```{r}
+#| label: hosmer-lemeshow
+
+PID_train_diabetes <- PID_train_predictions |>
+  mutate(
+    diabetes_numeric = if_else(
+      diabetes == "pos",
+      1,
+      0
+    )
+  ) |>
+  pull(diabetes_numeric)
+
+hoslem.test(
+  PID_train_diabetes,
+  PID_train_predictions$.pred_pos
+) |>
+  tidy()
+```
+
+## Evaluación final con los datos de prueba
+
+El conjunto de prueba se utiliza una sola vez para evaluar el procedimiento completo de selección y clasificación.
+
+```{r}
+#| label: test-predictions
+
+PID_test_predictions <- final_PID_logistic_fit |>
+  predict(
+    new_data = PID_test,
+    type = "prob"
+  ) |>
+  bind_cols(
+    final_PID_logistic_fit |>
+      predict(
+        new_data = PID_test,
+        type = "class"
+      )
+  ) |>
+  bind_cols(
+    PID_test |>
+      select(diabetes)
+  )
+
+PID_test_predictions
+```
+
+### Métricas de la clasificación
+
+```{r}
+#| label: test-metrics
+
+metric_set(
+  accuracy,
+  sens,
+  spec,
+  precision,
+  recall,
+  f_meas
+)(
+  PID_test_predictions,
+  truth = diabetes,
+  estimate = .pred_class,
+  event_level = "first"
+)
+```
+
+### Matriz de confusión
+
+```{r}
+#| label: confusion-matrix
+
+PID_confusion <- PID_test_predictions |>
+  conf_mat(
+    truth = diabetes,
+    estimate = .pred_class
+  )
+
+PID_confusion
+```
+
+### Curva ROC y AUC
+
+La curva ROC puede calcularse utilizando la probabilidad estimada de la clase positiva.
+
+```{r}
+#| label: roc-curve
+
+PID_roc_tbl <- PID_test_predictions |>
+  roc_curve(
+    truth = diabetes,
+    .pred_pos,
+    event_level = "first"
+  )
+
+PID_auc <- PID_test_predictions |>
+  roc_auc(
+    truth = diabetes,
+    .pred_pos,
+    event_level = "first"
+  )
+
+PID_roc_tbl |>
+  ggplot(
+    aes(
+      x = 1 - specificity,
+      y = sensitivity
+    )
+  ) +
+  geom_line(
+    color = c_pal("C blue"),
+    linewidth = 1.3
+  ) +
+  geom_abline(
+    intercept = 0,
+    slope = 1,
+    linetype = "dashed",
+    linewidth = 0.8,
+    color = "black"
+  ) +
+  annotate(
+    "text",
+    x = 0.65,
+    y = 0.1,
+    label = paste(
+      "AUC =",
+      round(PID_auc$.estimate, 3)
+    ),
+    size = 5
+  ) +
+  labs(
+    title = "Curva ROC",
+    x = "Proporción de Falsos Positivos (1 - Especificidad)",
+    y = "Proporción de Verdaderos Positivos (Sensitividad)"
+  ) +
+  theme_krul()
+```
+
+## Resumen
+
+En este ejemplo utilizamos selección supervisada de variables antes de ajustar el modelo de regresión logística.
+
+El procedimiento puede resumirse de la siguiente manera:
+
+1.  Separar los datos en entrenamiento y prueba.
+2.  Para cada predictor, ajustar un modelo logístico que contenga únicamente ese predictor.
+3.  Comparar cada modelo univariado con el modelo que contiene únicamente el intercepto mediante una prueba de razón de verosimilitudes.
+4.  Conservar los predictores para los cuales existe evidencia de asociación con la variable respuesta, utilizando el criterio $p\leq0.05$.
+5.  Incorporar la selección dentro de una receta de `tidymodels`.
+6.  Combinar la receta y el modelo de regresión logística dentro de un workflow.
+7.  Estimar el desempeño del procedimiento completo mediante validación cruzada.
+8.  Ajustar el modelo final utilizando todo el conjunto de entrenamiento.
+9.  Verificar la adecuación del modelo final.
+10. Evaluar el procedimiento completo sobre el conjunto de prueba reservado.
+
+Al incluir la selección dentro del workflow, cada partición de la validación cruzada realiza nuevamente las pruebas de selección utilizando exclusivamente los datos de entrenamiento de esa partición. Esto evita utilizar información de las observaciones de validación durante el proceso de selección de variables.
