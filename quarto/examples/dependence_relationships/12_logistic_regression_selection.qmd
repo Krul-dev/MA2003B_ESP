@@ -33,7 +33,7 @@ PID_tbl
 La proporción de pacientes con y sin diabetes es:
 
 ```{r}
-#\| label: inspect-data
+#| label: inspect-data
 
 PID_tbl |> count(diabetes) |> mutate( proportion = n / sum(n) )
 ```
@@ -151,6 +151,18 @@ lrt_results <- map_dfr(
 )
 ```
 
+Podemos ahora extraer las variables seleccionadas:
+
+```{r}
+#| label: inspect-selection
+
+selected_predictors <- lrt_results |>
+  filter(p_value <= alpha) |>
+  pull(predictor)
+
+selected_predictors
+```
+
 Definimos ahora la receta de selección.
 
 ```{r}
@@ -165,18 +177,6 @@ PID_logistic_recipe <- recipe(
   PID_logistic_formula,
   data = PID_train
 )
-```
-
-Podemos ahora extraer las variables seleccionadas:
-
-```{r}
-#| label: inspect-selection
-
-selected_predictors <- lrt_results |>
-  filter(p_value <= alpha) |>
-  pull(predictor)
-
-selected_predictors
 ```
 
 ## Modelo de Regresión Logística
