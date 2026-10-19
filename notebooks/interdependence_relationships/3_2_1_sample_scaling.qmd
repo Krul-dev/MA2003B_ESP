@@ -1,0 +1,129 @@
+# Escalamiento de muestras
+
+Para una muestra dada, no siempre se conoce la distribución poblacional subyacente. En particular, pueden desconocerse la media y la desviación estándar poblacional. Aun así, existen varios métodos comunes para escalar nuestros datos. Algunos de los más utilizados son:
+
+1.  **Estandarización.** Usa la media y la desviación estándar muestrales. En otras palabras, la muestra estandarizada está dada por $$T = \frac{X - \bar{X}}{S},$$ donde $\bar{X}$ es la media muestral y $S$ es la desviación estándar muestral.
+
+2.  **Escalamiento Min–Max.** En este caso la muestra escalada está dada por $$T = \frac{X - \min(X)}{\max(X) - \min(X)},$$ donde $\min(X)$ y $\max(X)$ son el mínimo y máximo de la muestra. Este método de escalamiento es muy sensible a valores atípicos, ya que utiliza los valores extremos de la muestra.
+
+3.  **Escalamiento robusto.** Usa la mediana y el rango intercuartil (IQR). La muestra escalada es $$T = \frac{X - \text{mediana}(X)}{\text{IQR}(X)},$$ Este método es más robusto frente a valores atípicos en comparación con el escalamiento Min–Max.
+
+4.  **Normalización.** Divide cada dato por la norma del vector. La muestra normalizada es $$T = \frac{X}{\|X\|},$$ donde $\|X\|$ es la norma. Se usa con menor frecuencia que los anteriores.
+
+Como ejemplo, consideraremos los distintos métodos de escalado aplicados a una muestra proveniente de una distribución Gamma.
+
+```{r}
+#| fig-cap: "Comparación de distintos métodos de escalamiento aplicados a una muestra generada a partir de la distribución Gamma. Notemos que todos los gráficos QQ son versiones reescaladas del gráfico QQ original y, por tanto, tienen la misma forma. En particular, no es posible alterar la normalidad de una muestra al aplicar un método de escalamiento."
+#| fig-width: 12
+#| fig-height: 14
+
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+
+# Para asegurar la reproducibilidad de los resultados
+set.seed(123)
+
+alpha <- 2
+beta <- 1
+
+scale_lookup_tbl <- tibble(
+  code = c(
+    "sample",
+    "sample_standard",
+    "sample_min_max",
+    "sample_robust",
+    "sample_normal"
+  ),
+  label = c(
+    "Muestra Original",
+    "Estandarización",
+    "Escalamiento Min–Max",
+    "Escalamiento Robusto",
+    "Normalización"
+  )
+)
+
+# Tamaño de la muestra
+n <- 3000
+
+gamma_sample_tbl <- tibble(
+  sample = rgamma(n, shape = alpha, rate = beta)
+)
+
+scaled_gamma_sample_tbl <- gamma_sample_tbl |>
+  mutate(
+    sample_standard = standard_scale(sample),
+    sample_min_max = min_max_scale(sample),
+    sample_robust = robust_scale(sample),
+    sample_normal = normal_scale(sample)
+  ) |>
+  pivot_longer(
+    cols = everything(),
+    names_to = "scaling_method",
+    values_to = "sample_scaled"
+  ) |>
+  convert_codes_to_factor(
+    code_col = scaling_method,
+    lookup_tbl = scale_lookup_tbl,
+    lookup_code_col = code,
+    lookup_label_col = label,
+    new_factor_col_name = scaling_method_factor
+  )
+
+scaled_gamma_qq_plot <- scaled_gamma_sample_tbl |>
+  ggplot(aes(sample = sample_scaled)) +
+  facet_wrap(
+    ~scaling_method_factor,
+    nrow = 5,
+    scales = "free"
+  ) +
+  geom_qq(
+    color = c_pal("C blue"),
+    size = 0.3
+  ) +
+  geom_qq_line(
+    color = c_pal("C magenta"),
+    linewidth = 0.5
+  ) +
+  labs(
+    title = "Gráficos QQ",
+    x = "Cuantiles teóricos",
+    y = "Cuantiles muestrales"
+  ) +
+  theme_krul()
+
+scaled_gamma_histogram <- scaled_gamma_sample_tbl |>
+  ggplot(aes(x = sample_scaled)) +
+  facet_wrap(
+    ~scaling_method_factor,
+    nrow = 5,
+    scales = "free"
+  ) +
+  geom_histogram(
+    bins = 30,
+    fill = c_pal("C blue"),
+    color = "black",
+    alpha = 0.7
+  ) +
+  labs(
+    title = "Histogramas",
+    x = "Valores muestrales",
+    y = "Frecuencia absoluta"
+  ) +
+  theme_krul()
+
+scaled_gamma_plot <- scaled_gamma_qq_plot + scaled_gamma_histogram +
+  plot_layout(ncol = 2) +
+  plot_annotation(
+    title = "Comparación de métodos de escalamiento aplicados a la muestra Gamma",
+    theme = theme(
+      plot.title = element_text(
+        size = 24,
+        face = "bold"
+      )
+    )
+  )
+
+scaled_gamma_plot
+```

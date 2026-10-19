@@ -474,6 +474,7 @@ En otras palabras,
 \begin{align*}
 Y_1 & = 2X_1 + X_2 \\ 
 Y_2 & = 3X_2 + 1 
+- 
 \end{align*}
 \end{example} 
 
@@ -512,7 +513,7 @@ Existen varias pruebas para verificar si un conjunto de datos sigue una normal m
 \begin{enumerate}
   \item \alert{Prueba de Mardia:}  
     Basada en asimetría y curtosis multivariantes.  
-    Para normal multivariante, asimetría ≈ 0 y curtosis ≈ \(p(p+2)\). En R: \texttt{MVN::mvn(tus\_datos, mvn\_test = "mardia")}.
+    Para normal multivariante, $\text{asimetría} \approx  0$  y $\text{curtosis} \approx p(p+2)$. En R: \texttt{MVN::mvn(tus\_datos, mvn\_test = "mardia")}.
     
   \item \alert{Prueba de Henze–Zirkler (HZ):}  
     Usa la función característica empírica para medir desvíos de normalidad. Buen poder global; adecuada en dimensiones moderadas. En R: \texttt{MVN::mvn(tus\_datos, mvn\_test = "hz")}.
