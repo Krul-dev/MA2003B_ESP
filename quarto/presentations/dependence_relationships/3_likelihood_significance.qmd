@@ -6,7 +6,14 @@ format:
      fontsize: 11pt
      classoption: "aspectratio=169"
      slide-level: 3  # Ensures correct slide structure
-     include-in-header: _header.tex
+     include-in-header:
+       - "_header.tex"
+       - text: |
+           \title[MA2003B]{3 Verosimilitud y significancia}
+           \subtitle{MA2003B Aplicación de métodos multivariados \\ en ciencia de datos}
+           \institute[Tec de Monterrey]{EIC}
+           \date{Campus Monterrey}
+           \logo{\includegraphics[height=1.0cm]{tecnologico-de-monterrey-blue}}
 
 execute:
   echo: true  # Set to false if you don't want code displayed
@@ -42,5 +49,3 @@ highlight-style: tango
 \end{center}
 
 {{< include _3_content.qmd >}}
-
-
