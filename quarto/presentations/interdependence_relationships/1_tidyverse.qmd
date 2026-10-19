@@ -9,7 +9,7 @@ format:
      include-in-header:
        - "_header.tex"
        - text: |
-           \title[MA2003B]{Estructura y organización de datos}
+           \title[MA2003B]{1 Estructura y organización de datos}
            \subtitle{MA2003B Aplicación de métodos multivariados \\ en ciencia de datos}
            \institute[Tec de Monterrey]{EIC}
            \date{Campus Monterrey}
@@ -50,5 +50,3 @@ highlight-style: tango
 
 
 {{< include _1tidyverse_content.qmd >}}
-
-

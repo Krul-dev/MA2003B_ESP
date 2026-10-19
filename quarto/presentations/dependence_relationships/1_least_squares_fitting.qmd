@@ -9,7 +9,7 @@ format:
      include-in-header:
        - "_header.tex"
        - text: |
-           \title[MA2003B]{Ajuste por mínimos cuadrados}
+           \title[MA2003B]{1 Ajuste por mínimos cuadrados}
            \subtitle{MA2003B Aplicación de métodos multivariados \\ en ciencia de datos}
            \institute[Tec de Monterrey]{EIC}
            \date{Campus Monterrey}
