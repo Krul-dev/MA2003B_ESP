@@ -54,14 +54,14 @@ Además, las variables aleatorias $\bar{Y}$ y $S^2$ son independientes, por lo q
 $$
 T = \frac{\bar{Y} - \mu}{S / \sqrt{n}} \sim t_{n-1}
 $$
-donde $t_{n-1}$ denota la distribución $t$ de Student con $n-1$ grados de libertad. Notemos que la variable aleatoria $T$ es una función de la media muestral $\bar{Y}$, la varianza muestral $S^2$ y el tamaño de la muestra $n$. Notemos además que su distribución asociada no depende del valor de $\mu$ ni de $\sigma^2$. Sea ahora $t_{\alpha/2, n-1}$ el cuantil de orden $1 - \alpha/2$ de la distribución $t$ de Student con $n-1$ grados de libertad. En otras palabras, $t_{\alpha/2, n-1}$ es el valor tal que
+donde $t_{n-1}$ denota la distribución $t$ de Student con $n-1$ grados de libertad. Notemos que la variable aleatoria $T$ es una función de la media muestral $\bar{Y}$, la varianza muestral $S^2$ y el tamaño de la muestra $n$. Notemos además que su distribución asociada no depende del valor de $\mu$ ni de $\sigma^2$. Sea ahora $t_{1-\alpha/2, n-1}$ el cuantil de orden $1 - \alpha/2$ de la distribución $t$ de Student con $n-1$ grados de libertad. En otras palabras, $t_{1-\alpha/2, n-1}$ es el valor tal que
 $$
-P(-t_{\alpha/2, n-1} < T < t_{\alpha/2, n-1}) = 1 - \alpha
+P(-t_{1-\alpha/2, n-1} < T < t_{1-\alpha/2, n-1}) = 1 - \alpha
 $$
 Reescribiendo esta desigualdad en términos de $\mu$, obtenemos
 $$
-P\left(\bar{Y} - t_{\alpha/2, n-1}
-\frac{S}{\sqrt{n}} < \mu < \bar{Y} + t_{\alpha/2, n-1} \frac{S}{\sqrt{n}}\right) = 1 - \alpha
+P\left(\bar{Y} - t_{1-\alpha/2, n-1}
+\frac{S}{\sqrt{n}} < \mu < \bar{Y} + t_{1-\alpha/2, n-1} \frac{S}{\sqrt{n}}\right) = 1 - \alpha
 $$
 Supongamos ahora que realizamos el muestreo correspondiente y que obtenemos $y_1, y_2, \ldots, y_n$ como los valores de la muestra. Podemos entonces calcular la media muestral $\bar{y}$ así como la varianza muestral $s^2$, y podemos utilizar estos valores para construir el intervalo de confianza 
 $$
@@ -208,11 +208,11 @@ combined_y_plot
 ```
 Tomaremos ahora un valor de $\alpha = 0.2$. Entonces el valor del cuantil de orden $1 - \alpha/2 = 0.9$ de la distribución $t$ de Student con $n-1 = 9$ grados de libertad es
 $$
-t_{\alpha/2, n-1} = t_{0.1, 9} \approx `r round(qt(0.1, df = 9, lower.tail = FALSE), 4)`
+t_{1-\alpha/2, n-1} = t_{0.9, 9} \approx `r round(qt(0.9, df = 9), 4)`
 $$
 En otras palabras,
 $$
-P(-t_{\alpha/2, n-1} < T < t_{\alpha/2, n-1}) = 1 - \alpha = 0.8
+P(-t_{1-\alpha/2, n-1} < T < t_{1-\alpha/2, n-1}) = 1 - \alpha = 0.8
 $$
 ```{r}
 #| fig-cap: "Densidad de la distribución $t$ de Student con $n-1=9$ grados de libertad, con los valores críticos para $\\alpha = 0.2$. Notemos que el área sombreada contiene el $80\\%$ de la densidad de la distribución $t$ de Student."
