@@ -9,7 +9,7 @@ format:
      include-in-header:
        - "_header.tex"
        - text: |
-           \title[MA2003B]{2 Regresión lineal}
+           \title[MA2003B]{2 Regresión lineal simple}
            \subtitle{MA2003B Aplicación de métodos multivariados \\ en ciencia de datos}
            \institute[Tec de Monterrey]{EIC}
            \date{Campus Monterrey}
@@ -19,7 +19,6 @@ execute:
   echo: true  # Set to false if you don't want code displayed
 
 highlight-style: tango 
-
 ---
 
 ### {.plain}
@@ -48,4 +47,4 @@ highlight-style: tango
 
 \end{center}
 
-{{< include _2_content.qmd >}}
+{{< include _2_3_content.qmd >}}

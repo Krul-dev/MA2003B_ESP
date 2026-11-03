@@ -9,6 +9,8 @@
 ```{r}
 #| message: false
 library(tidyverse)
+library(krulRutils)
+
 set.seed(123)
 x_data <- c(1, 2, 3)
 epsilon_data <- rnorm(3, mean = 0, sd = 0.3)
@@ -327,7 +329,7 @@ sample_data_plot <- sample_data_tbl %>%
     y = "y",
     color = "Elementos de la gráfica"
   ) +
-  theme_minimal()
+  theme_krul()
 
 sample_data_plot
 ```

@@ -31,6 +31,7 @@ sample_model
 **Solución:** Empezamos por leer los datos que se nos dan:
 
 ```{r}
+#| message: false
 
 library(here)
 sample_data1_tbl <- read_csv(here("data","1_sample_data.csv" )) 
