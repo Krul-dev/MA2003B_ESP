@@ -402,3 +402,114 @@ p_{F} = P_{F_{p, n - p - 1}}(F \geq f)
 $$ 
 \item \pause Si $p_{F} < \alpha$, entonces rechazamos la hipótesis nula y concluimos que al menos uno de los parámetros $b_{1}, b_{2}, \ldots, b_{p}$ es significativamente diferente de cero. 
 \end{enumerate}
+
+## El Cuarteto de Anscombe
+
+### El Cuarteto de Anscombe
+
+La significancia de los parámetros del modelo de regresión lineal múltiple no garantiza que el modelo sea adecuado para describir los datos observados.
+
+\bigpause
+
+Como ejemplo de esto, consideremos el Cuarteto de Anscombe, que consiste en cuatro conjuntos de datos que tienen valores de $R^{2}$ y de $F$ muy similares, pero que tienen distribuciones muy diferentes.
+
+\bigpause
+
+Esto nos indica que es necesario realizar otras pruebas para verificar la adecuación del modelo, además de la prueba de significancia de los parámetros.
+
+###
+```{r}
+#| fig-width: 12
+#| fig-height: 7
+#| message: false
+#| echo: false
+
+library(tidyverse)
+library(krulRutils)
+library(patchwork)
+
+# Cargamos los datos de Anscombe
+data(anscombe)
+
+# Construimos una tabla en formato tidy
+anscombe_tbl <- tibble(
+  modelo = rep(1:4, each = 11),
+  x = c(anscombe$x1, anscombe$x2, anscombe$x3, anscombe$x4),
+  y = c(anscombe$y1, anscombe$y2, anscombe$y3, anscombe$y4)
+)
+
+# Construimos los cuatro gráficos
+anscombe_plots <- anscombe_tbl |>
+  split(~modelo) |>
+  map(\(data) {
+    ggplot(data, aes(x = x, y = y)) +
+      coord_cartesian(
+        xlim = c(0, 20),
+        ylim = c(0, 15)
+      ) +
+      geom_point(
+        color = c_pal("C red"),
+        size = 2,
+        alpha = 1
+      ) +
+      geom_smooth(
+        method = "lm",
+        se = FALSE,
+        fullrange = TRUE,
+        color = c_pal("C blue")
+      ) +
+      scale_x_continuous(
+        limits = c(0, 20),
+        expand = expansion(mult = 0)
+      ) +
+      labs(
+        title = paste("Modelo", unique(data$modelo)),
+        x = "",
+        y = ""
+      ) +
+      theme_krul()
+  })
+
+# Combinamos los gráficos en una matriz 2x2
+anscombe_plot <- wrap_plots(anscombe_plots, ncol = 2)
+
+anscombe_plot
+```
+
+###
+
+Como podemos ver, los cuatro conjuntos de datos tienen la misma recta de regresión lineal, pero sus distribuciones son muy diferentes.
+
+\bigpause 
+
+Sin embargo, si calculamos el estadístico $F$ y el valor de $R^{2}$ para cada uno de los cuatro conjuntos de datos, obtendremos valores muy similares. 
+
+```{r}
+#| message: false
+#| echo: false
+
+library(broom)
+library(kableExtra)
+
+anscombe_tbl |>
+  group_by(modelo) |>
+  nest() |>
+  mutate(
+    model = map(data, ~ lm(y ~ x, data = .x)),
+    stats = map(model, glance)
+  ) |>
+  unnest(stats) |>
+  select(modelo, r.squared, statistic, p.value) |>
+  kable(
+    col.names = c("Modelo", "$R^2$", "Estadístico $F$", "Valor $p$"),
+    digits = 4,
+    format = "latex",
+    booktabs = TRUE,
+    escape = FALSE,
+    align = "c"
+  ) |>
+  kable_styling(
+    latex_options = c("hold_position"),
+    full_width = FALSE
+  )
+```

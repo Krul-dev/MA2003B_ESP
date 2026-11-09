@@ -23,7 +23,7 @@ Supongamos que tenemos una variable aleatoria $Y_{0}$ que sigue una distribució
 $$
 Y_{0} \sim \mathcal{N}(\mu, \sigma^2)
 $$
-Supongamos además que queremos recolectar una muestra de tamaño $n$ de esta variable aleatoria, que utilizaremos para estimar el valor de la media $\mu$. Utilizaremos las variables aleatorias $Y_1, Y_2, \ldots, Y_n$ para denotar los posibles valores de esta muestra. Notemos que estas variables aleatorias son independientes e idénticamente distribuidas (i.i.d.) y que cada una de ellas sigue la misma distribución normal que $Y_{0}$, es decir,
+Supongamos además que queremos obtener una muestra de tamaño $n$ de esta variable aleatoria, que utilizaremos para estimar el valor de la media $\mu$. Utilizaremos las variables aleatorias $Y_1, Y_2, \ldots, Y_n$ para denotar los posibles valores de esta muestra. Notemos que estas variables aleatorias son independientes e idénticamente distribuidas (i.i.d.) y que cada una de ellas sigue la misma distribución normal que $Y_{0}$, es decir,
 $$
 Y_i \sim \mathcal{N}(\mu, \sigma^2) \qquad i = 1, 2, \ldots, n
 $$
@@ -330,8 +330,71 @@ confidence_intervals_plot
 
 ## Pruebas de hipótesis para la media
 
-Hasta el momento hemos considerado el parámetro $\mu$ como un valor desconocido, pero fijo, que buscamos estimar a partir de una muestra. Sin embargo, en muchas ocasiones tenemos un valor específico de $\mu$ , y queremos determinar si los datos que hemos recolectado son consistentes con este valor. De manera más concreta, en el contexto de pruebas de hipótesis para la media empezamos suponiendo que tenemos un valor específico de $\mu$, que denotaremos como $\mu_0$. A partir de este valor, formulamos dos hipótesis estadísticas: la hipótesis nula $H_0$ y la hipótesis alternativa $H_1$. La hipótesis nula $H_0$ establece que el valor verdadero de $\mu$ es igual a $\mu_0$, mientras que la hipótesis alternativa $H_1$ establece que el valor verdadero de $\mu$ es diferente de $\mu_0$. En otras palabras, tenemos 
+Hasta el momento hemos considerado el parámetro $\mu$ como un valor desconocido, pero fijo, que buscamos estimar a partir de una muestra. Sin embargo, en muchas ocasiones tenemos un valor específico de $\mu$ , y queremos determinar si los datos que hemos obtenido son consistentes con este valor. De manera más concreta, en el contexto de pruebas de hipótesis para la media empezamos suponiendo que tenemos un valor específico de $\mu$, que denotaremos como $\mu_0$ y buscamos evidencia estadística que nos permita.
+
+
+
+A partir de este valor, formulamos dos hipótesis estadísticas: la hipótesis nula $H_0$ y la hipótesis alternativa $H_1$. La hipótesis nula $H_0$ establece que el valor verdadero de $\mu$ es igual a $\mu_0$, mientras que la hipótesis alternativa $H_1$ establece que el valor verdadero de $\mu$ es diferente de $\mu_0$. En otras palabras, tenemos 
 $$
 H_0: \mu = \mu_0 \qquad \text{vs.} \qquad H_1: \mu \neq \mu_0
 $$	
 
+### Población normal y varianza desconocida
+
+**Paso 1:** Hipótesis y Distribución Muestral.
+
+Hipótesis nula:
+$$
+H_0:\mu=\mu_0
+$$
+Hipótesis alternativa:
+$$
+\begin{array}{cc}
+H_1:\mu\neq\mu_0 & \text{(dos colas)} \\
+H_1:\mu_0<\mu & \text{(cola derecha)} \\
+H_1:\mu<\mu_0 & \text{(cola izquierda)}
+\end{array}
+$$
+
+Distribución muestral:
+$$
+T=\frac{\bar{X}-\mu_0}{S/\sqrt{n}}\sim t_{n-1}
+$$
+
+**Paso 2:** Regla de decisión.
+
+A partir del nivel de significancia $\alpha$ dado, se determina el valor de frontera y la región de rechazo:
+$$
+\begin{array}{cc}
+(-\infty,t_{\alpha/2,n-1})\cup(t_{1-\alpha/2,n-1},\infty) & \text{(dos colas)} \\
+(t_{1-\alpha,n-1},\infty) & \text{(cola derecha)} \\
+(-\infty,t_{\alpha,n-1}) & \text{(cola izquierda)}
+\end{array}
+$$
+
+**Paso 3:** Análisis de la muestra.
+
+Se calcula el valor del estadístico de prueba:
+$$
+t=\frac{\bar{x}-\mu_0}{s/\sqrt{n}}
+$$
+donde $\bar{x}$ y $s$ son los valores observados de $\bar{X}$ y $S$, respectivamente. El valor $p$ correspondiente se calcula como
+$$
+\begin{array}{cc}
+p=2\min\{P(T\leq t),P(T\geq t)\} & \text{(dos colas)} \\
+p=P(T\geq t) & \text{(cola derecha)} \\
+p=P(T\leq t) & \text{(cola izquierda)}
+\end{array}
+$$
+
+**Paso 4:** Conclusiones.
+
+Si el estadístico de prueba cae dentro de la región de rechazo, entonces rechazamos la hipótesis nula.
+
+De manera equivalente, comparando los valores de $p$ y $\alpha$,
+$$
+\begin{array}{ll}
+\text{Si $p\leq \alpha$} & \text{se rechaza $H_0$} \\
+\text{Si $p>\alpha$} & \text{no se rechaza $H_0$}
+\end{array}
+$$
