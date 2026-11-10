@@ -8,17 +8,19 @@ Prueba de RESET de Ramsey: Evalúa si hay términos omitidos que podrían indica
 ```
 
 ```{r}
+#| message: false
 
 # Ejemplo donde se cumple el supuesto
 set.seed(123)
-x <- rnorm(100, 50, 10)
-y <- 5 + 2 * x + rnorm(100, 0, 5)
+n<- 200
+x <- seq(1, 10, length.out = n)
+y <- 5 + 2 * x + rnorm(n, 0, 5)
 model1 <- lm(y ~ x)
 plot(fitted(model1), resid(model1), main = "Residuos vs Valores Predichos")
 abline(h = 0, col = "red")
 
 # Ejemplo donde no se cumple el supuesto
-y <- 5 + 2 * x^2 + rnorm(100, 0, 5)
+y <- 5 + 2 * x^2 + rnorm(n, 0, 5)
 model2 <- lm(y ~ x)
 plot(fitted(model2), resid(model2), main = "Residuos vs Valores Predichos")
 abline(h = 0, col = "red")
@@ -70,14 +72,14 @@ Un valor cercano a 2 sugiere independencia.
 ```{r}
 
 # Ejemplo donde se cumple el supuesto
-y <- 5 + 2 * x + rnorm(100, 0, 5)
+y <- 5 + 2 * x + rnorm(n, 0, 5)
 model1 <- lm(y ~ x)
 dwtest(model1)
 bgtest(model1)
 
 # Ejemplo donde no se cumple el supuesto
 y[1] <- 5 + 2 * x[1] + rnorm(1, 0, 5)
-for (i in 2:100) {
+for (i in 2:n) {
   y[i] <- 0.8 * y[i-1] + 2 * x[i] + rnorm(1, 0, 5)
 }
 model2 <- lm(y ~ x)
@@ -90,6 +92,7 @@ Cómo lidiar con la autocorrelación
 Si hay autocorrelación, se puede ajustar un modelo de regresión con errores autocorrelacionados, como un modelo ARIMA.
 
 ```{r}
+#| message: false
 
 library(forecast)
 model2_arima <- auto.arima(y, xreg = x)
@@ -115,18 +118,16 @@ H₁: La varianza de los errores no es constante (heterocedasticidad).
 
 ```{r}
 # Ejemplo donde se cumple el supuesto
-y <- 5 + 2 * x + rnorm(100, 0, 5)
-model1 <- lm(y ~ x)
-plot(fitted(model1), sqrt(abs(resid(model1))), main = "Escala-Localización")
-abline(h = 0, col = "red")
+y <- 20 + 2 * x + rnorm(n, 0, 5)
+mode101 <- lm(y ~ x)
+plot(model1, which = 3)
 bptest(model1)
 gqtest(model1)
 
 # Ejemplo donde no se cumple el supuesto
-y <- 5 + 2 * x + rnorm(100, 0, 5 * x)
+y <- 20 + 2 * x + rnorm(n, 0, 5 * x)
 model2 <- lm(y ~ x)
-plot(fitted(model2), sqrt(abs(resid(model2))), main = "Escala-Localización")
-abline(h = 0, col = "red")
+plot(model2, which = 3)
 bptest(model2)
 gqtest(model2)
 ```
@@ -139,8 +140,7 @@ Para corregir la heterocedasticidad, se puede aplicar una transformación logar�
 
 # Transformación logarítmica
 model2_log <- lm(log(y) ~ x)
-plot(fitted(model2_log), sqrt(abs(resid(model2_log))), main = "Escala-Localización (Log)")
-abline(h = 0, col = "red")
+plot(model2_log, which = 3)
 
 # Regresión robusta
 library(MASS)
@@ -187,7 +187,7 @@ Cómo lidiar con la no normalidad
 Se pueden realizar transformaciones en la variable dependiente o utilizar métodos robustos.
 
 ```{r}
-
+#| message: false
 # Transformación logarítmica
 model2_log <- lm(log(y) ~ x)
 qqnorm(resid(model2_log))
@@ -210,17 +210,18 @@ Eigenvalues y eigenvectors: Análisis más detallado de la colinealidad.
 ```
 
 ```{r}
+#| message: false
 
 # Ejemplo donde se cumple el supuesto
-x1 <- rnorm(100, 50, 10)
-x2 <- rnorm(100, 30, 5)
-y <- 5 + 2 * x1 + 3 * x2 + rnorm(100, 0, 5)
+x1 <- rnorm(n, 50, 10)
+x2 <- rnorm(n, 30, 5)
+y <- 5 + 2 * x1 + 3 * x2 + rnorm(n, 0, 5)
 model1 <- lm(y ~ x1 + x2)
 library(car)
 vif(model1)
 
 # Ejemplo donde no se cumple el supuesto
-x2 <- x1 + rnorm(100, 0, 1)  # x2 altamente correlacionada con x1
+x2 <- x1 + rnorm(n, 0, 1)  # x2 altamente correlacionada con x1
 model2 <- lm(y ~ x1 + x2)
 vif(model2)
 ```
@@ -230,6 +231,7 @@ Cómo lidiar con la multicolinealidad
 Para manejar la multicolinealidad, se puede eliminar una de las variables correlacionadas o utilizar el análisis de componentes principales (PCA).
 
 ```{r}
+#| message: false
 
 # Eliminando una variable
 model2_reduced <- lm(y ~ x1)
