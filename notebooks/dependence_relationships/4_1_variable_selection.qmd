@@ -11,6 +11,8 @@ Siempre podemos hacer una selección manual de las variables a considerar, utili
 Empezaremos por explorar la base de datos
 
 ```{r}
+#| message: false
+
 library(tidyverse)
 library(GGally)
 library(krulRutils)
@@ -54,7 +56,8 @@ mtcars_pairs_plot <- mtcars |>
 mtcars_pairs_plot
 ```
 
-Basándonos en la información contenida en esta gráfica, elegimos Para este las variables predictoras "wt" y "hp" y la variable "mpg" como variable de respuesta.
+Basándonos en la información contenida en esta gráfica, elegimos \
+las variables predictoras "wt" y "hp" y la variable "mpg" como variable de respuesta.
 
 ### Paso 2. Ajuste del modelo
 
